@@ -35,7 +35,7 @@ lexer_t* new_lexer(char* path) {
 }
 
 static token_t lexing_ident(lexer_t* lexer, size_t start) {
-    while (isalnum(string_get(lexer->src, lexer->i++));
+    while (isalnum(string_get(lexer->src, lexer->i++)));
 
     return init_token(TK_IDENT, string_slice(lexer->src, start, lexer->i - 1));
 }
@@ -48,8 +48,8 @@ static token_t lexing_number(lexer_t* lexer, size_t start) {
 
 token_t lexer_next_token(lexer_t* self) {
     char c;
-    while (c = string_get(self->src, self->i++)) {
-        if (!__isascii(c)) {
+    while ((c = string_get(self->src, self->i++))) {
+        if (!isascii(c)) {
             fprintf(stderr,
                 "\033[31merror\033[39m: '%c' is a non-valid ascii character \n",
                 c);

@@ -9,7 +9,7 @@
 string_t* new_string(char* src) {
     size_t len = strlen(src);
     char* data = NULL;
-    string_t* str = NULL
+    string_t* str = NULL;
 
     str = calloc(1, sizeof(string_t));
 
@@ -77,7 +77,7 @@ string_t* string_slice(string_t* self, size_t start, size_t end) {
  * return string_t object or NULL if an error occured
  */
 string_t* string_push(string_t* self, char* str) {
-    size_t new_size = self->len + strlen(str)
+    size_t new_size = self->len + strlen(str);
 
     if (string_resize(self, new_size)) {
         strncat(self->data, str, new_size);
@@ -92,7 +92,7 @@ string_t* string_push(string_t* self, char* str) {
  * return string_t or NULL if an error occured.
  */
 string_t* string_push_str(string_t* self, string_t* str) {
-    size_t new_size = self->len + strlen(str)
+    size_t new_size = self->len + str->len;
 
     if (string_resize(self, new_size)) {
         strncat(self->data, str->data, new_size);
