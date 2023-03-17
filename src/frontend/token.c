@@ -2,7 +2,7 @@
 #include "token.h"
 
 token_t init_token(token_kind_t kind, string_t* value) {
-    return (token_t){
+    return (token_t) {
         .kind = kind,
         .value = value,
     }
