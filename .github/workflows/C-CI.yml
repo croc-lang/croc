@@ -30,7 +30,7 @@ jobs:
           $(git ls-files '*.[ch]')
 
       - name: Compile
-        run: xmake
+        run: xmake -y
 
       - name: Valgrind
         run: valgrind build/*/*/*/*
