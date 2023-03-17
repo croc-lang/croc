@@ -9,8 +9,8 @@ typedef struct String {
 string_t* new_string(char* str);
 char string_get(string_t* self, size_t index);
 string_t* string_slice(string_t* self, size_t start, size_t end);
-void string_push(string_t* self, char* str2);
-void string_push_str(string_t* self, string_t* str2);
+string_t* string_push(string_t* self, char* str2);
+string_t* string_push_str(string_t* self, string_t* str2);
 void string_drop(string_t* self);
 
 char* strslice(const char *str, size_t start, size_t end);
