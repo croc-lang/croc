@@ -4,4 +4,5 @@ set_toolchains("@llvm")
 
 target("croc")
     set_kind("binary")
+    add_files("src/**/*.c")
     add_files("src/*.c")
