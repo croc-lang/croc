@@ -1,7 +1,7 @@
 #ifndef FRONTEND_LEXER_H
 #define FRONTEND_LEXER_H
 #include "token.h"
-#include "../string.h"
+#include "../string_utils.h"
 
 typedef struct Lexer {
     char* filename;
