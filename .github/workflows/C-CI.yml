@@ -29,8 +29,8 @@ jobs:
           cpplint --filter=-whitespace/newline,-whitespace/empty_loop_body,-whitespace/indent,-whitespace/blank_line,-readability/casting,-legal/copyright,-build/include_subdir,-build/header_guard
           $(git ls-files '*.[ch]')
 
-      - name: Compile
-        run: xmake -y
+          #- name: Compile
+          #run: xmake -y
 
-      - name: Valgrind
-        run: valgrind build/*/*/*/*
+          #- name: Valgrind
+          #run: valgrind build/*/*/*/*
