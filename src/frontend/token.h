@@ -5,6 +5,7 @@
 
 typedef enum TokenKind {
     TK_IDENT,
+    TK_STRING,
     TK_INT,
     TK_FLOAT,
     TK_EOF,
