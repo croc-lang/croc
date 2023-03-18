@@ -29,6 +29,26 @@ string_t* new_string(char* src) {
     return str;
 }
 
+string_t* sized_string(size_t len) {
+    char* data = NULL;
+    string_t* str = NULL;
+
+    str = calloc(1, sizeof(string_t));
+
+    if (str == NULL)
+        return NULL;
+
+    data = calloc(len + 1, sizeof(char));
+
+    if (data == NULL)
+        return NULL;
+
+    str->len = len;
+    str->data = data;
+
+    return str;
+}
+
 /*
  * resize string_t object 'self' with the new size 'len'.
  * return the new memory adresse with the new size allocated or NULL if realloc
@@ -81,6 +101,21 @@ string_t* string_push(string_t* self, char* str) {
 
     if (string_resize(self, new_size)) {
         strncat(self->data, str, new_size);
+        return self;
+    }
+
+    return NULL;
+}
+
+/*
+ * push a char into a string_t object.
+ * return string_t or NULL if an error occured.
+ */
+string_t* string_push_char(string_t* self, char c) {
+    size_t new_size = self->len + 1;
+
+    if (string_resize(self, new_size)) {
+        self->data[self->len - 1] = c;
         return self;
     }
 
