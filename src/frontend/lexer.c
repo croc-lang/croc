@@ -1,29 +1,27 @@
 #include <assert.h>
 #include <ctype.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include "lexer.h"
 #include "../string_utils.h"
 
-#define FILE_CHUNK 1024
-
 lexer_t* new_lexer(char* path) {
-    char chunk[FILE_CHUNK] = {0};
-    bool pushed;
     lexer_t* lexer = calloc(sizeof(lexer_t), 1);
+    string_t* src = NULL;
+    size_t len = 0;
 
     FILE* file = fopen(path, "r");
-    if (file == NULL) return NULL;
+    if (file == NULL)
+        return NULL;
 
-    string_t* src = new_string("");
+    fseek(file, 0, SEEK_END);
+    len = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    src = sized_string(len);
 
-    while (fread(chunk, FILE_CHUNK, 1, file) && !(pushed = 0)) {
-        string_push(src, chunk);
-        pushed = 1;
-    }
-    if (!pushed) {
-        string_push(src, chunk);
-    }
+    if (src == NULL)
+        return NULL;
+
+    fread(src->data, len, 1, file);
 
     lexer->filename = path;
     lexer->src = src;
@@ -48,7 +46,7 @@ static token_t lexing_number(lexer_t* lexer, size_t start) {
 
 token_t lexer_next_token(lexer_t* self) {
     char c;
-    while ((c = string_get(self->src, self->i++))) {
+    while ((c = string_get(self->src, self->i++)) != -1) {
         if (!isascii(c)) {
             fprintf(stderr,
                 "\033[31merror\033[39m: '%c' is a non-valid ascii character \n",
