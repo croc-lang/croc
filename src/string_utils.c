@@ -29,6 +29,10 @@ string_t* new_string(char* src) {
     return str;
 }
 
+/*
+ * create a new string_t object empty with a specific size of 'len'
+ * return NULL if error occured.
+ */
 string_t* sized_string(size_t len) {
     char* data = NULL;
     string_t* str = NULL;
