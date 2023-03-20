@@ -41,55 +41,56 @@ static token_t lexing_ident(lexer_t* lexer, size_t start) {
 static token_t lexing_number(lexer_t* lexer, size_t start) {
     while (isdigit(string_get(lexer->src, lexer->i++)));
 
-    if (string_get(lexer->src, lexer->i) == '.' && isdigit(string_get(lexer->src, lexer->i + 1))) {
+    if (string_get(lexer->src, lexer->i) == '.' &&
+        isdigit(string_get(lexer->src, lexer->i + 1))) {
         while (isdigit(string_get(lexer->src, lexer->i++)));
 
-        return init_token(TK_FLOAT, string_slice(lexer->src, start, lexer->i - 1));
+        return init_token(TK_FLOAT,
+            string_slice(lexer->src, start, lexer->i - 1));
     }
 
     return init_token(TK_INT, string_slice(lexer->src, start, lexer->i - 1));
 }
 
-static token_t lexing_string(lexer_t* lexer, size_t start) {
-    string_t* string = new_string("");
+static token_t lexing_string(lexer_t* lexer) {
+    string_t* str = new_string("");
     char c;
 
     while ((c = string_get(lexer->src, lexer->i++)) != -1) {
         if (c == '\\') {
-            switch ((c = string_get(lexer->src, lexer->i++)))
-            {
+            switch ((c = string_get(lexer->src, lexer->i++))) {
             case '0':
-                string_push_char(string, '\0');
+                string_push_char(str, '\0');
                 break;
             case 'n':
-                string_push_char(string, '\n');
+                string_push_char(str, '\n');
                 break;
             case 'r':
-                string_push_char(string, '\r');
+                string_push_char(str, '\r');
                 break;
             case 't':
-                string_push_char(string, '\t');
+                string_push_char(str, '\t');
                 break;
             case 'b':
-                string_push_char(string, '\b');
+                string_push_char(str, '\b');
                 break;
             case 'f':
-                string_push_char(string, '\f');
+                string_push_char(str, '\f');
                 break;
             case 'v':
-                string_push_char(string, '\v');
+                string_push_char(str, '\v');
                 break;
             case '\n':
                 break;
             default:
-                string_push_char(string, c);
+                string_push_char(str, c);
                 break;
             }
         } else if (c == '"') break;
-        else string_push_char(string, c);
+        else string_push_char(str, c);
     }
 
-    return init_token(TK_STRING, string);
+    return init_token(TK_STRING, str);
 }
 
 token_t lexer_next_token(lexer_t* self) {
@@ -108,12 +109,13 @@ token_t lexer_next_token(lexer_t* self) {
             while (c != -1 && c != '\n') c = string_get(self->src, self->i++);
             continue;
         }
-        else if (c == '"') return lexing_string(self, self->i - 1);
+        else if (c == '"') return lexing_string(self);
         else if (isdigit(c)) return lexing_number(self, self->i - 1);
         else if (isalpha(c)) return lexing_ident(self, self->i - 1);
         else {
             fprintf(stderr,
-                    "\033[31merror\033[39m: the character '%c' was invalid\n", c);
+                    "\033[31merror\033[39m: the character '%c' was invalid\n",
+                    c);
             exit(1);
         }
     }
