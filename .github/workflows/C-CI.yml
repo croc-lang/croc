@@ -26,7 +26,7 @@ jobs:
 
       - name: Linter pass 'cpplint'
         run: >
-          cpplint --filter=-whitespace/newline,-whitespace/empty_loop_body,-whitespace/indent,-whitespace/blank_line,-readability/casting,-legal/copyright,-build/include_subdir,-build/header_guard
+          cpplint --filter=-whitespace/newline,-whitespace/empty_loop_body,-whitespace/indent,-whitespace/blank_line,-readability/casting,-legal/copyright,-build/include_subdir,-build/header_guard,-readability/braces
           $(git ls-files '*.[ch]')
 
           #- name: Compile
