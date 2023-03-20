@@ -4,7 +4,10 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+
+env:
+  # to avoid error "Running xmake as root is extremely dangerous and no longer supported."
+  XMAKE_ROOT: y
 
 jobs:
   build:
@@ -12,25 +15,34 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v3
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
         with:
-          python-version: "3.9"
+          xmake-version: branch@dev
+          actions-cache-folder: .xmake-cache-W${{ steps.cache_key.outputs.key }}
 
+      # Force xmake to a specific folder (for cache)
+      - name: Set xmake env
+        run: echo "XMAKE_GLOBALDIR=${{ runner.workspace }}/xmake-global" >> $GITHUB_ENV
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        
       - name: Install dependencies
         run: |
-          #sudo apt-get install -y curl clang valgrind
-          #curl -fsSL https://xmake.io/shget.text | bash
+          sudo apt update
+          # this is install only for avoid more than 1h of building 
+          sudo apt install -y llvm
           python -m pip install --upgrade pip
           python -m pip install cpplint
+
+      - name: Build Croc
+        run: xmake -y
+
+      - name: Run tests
+        run: xmake run test
 
       - name: Linter pass 'cpplint'
         run: >
           cpplint --filter=-whitespace/newline,-whitespace/empty_loop_body,-whitespace/indent,-whitespace/blank_line,-readability/casting,-legal/copyright,-build/include_subdir,-build/header_guard,-readability/braces
           $(git ls-files '*.[ch]')
-
-          #- name: Compile
-          #run: xmake -y
-
-          #- name: Valgrind
-          #run: valgrind build/*/*/*/*
