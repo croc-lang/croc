@@ -97,3 +97,21 @@ Test(lexer, ident) {
     token_drop(&actual);
     lexer_drop(lexer);
 }
+
+Test(lexer, keywords) {
+    const int size = 3;
+
+    lexer_t* lexer = new_lexer("test.cr", "let if func");
+    token_kind_t keywords[size] = {TK_KW_LET, TK_KW_IF, TK_KW_FUNC};
+
+    for (size_t i = 0; i < size; i++) {
+        token_t actual = lexer_next_token(lexer);
+
+        cr_assert_null(actual.value);
+        cr_assert_eq(actual.kind, keywords[i]);
+
+        token_drop(&actual);
+    }
+
+    lexer_drop(lexer);
+}

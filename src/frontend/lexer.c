@@ -49,7 +49,18 @@ lexer_t* new_lexer(char* path, char* src) {
 static token_t lexing_ident(lexer_t* lexer, size_t start) {
     while (isalnum(string_get(lexer->src, lexer->i++)));
 
-    return init_token(TK_IDENT, string_slice(lexer->src, start, lexer->i - 1));
+    string_t* ident = string_slice(lexer->src, start, lexer->i - 1);
+
+    if (string_eq(ident, "let")) {
+        string_drop(ident);
+        return init_token(TK_KW_LET, NULL);
+    } else if (string_eq(ident, "if")) {
+        string_drop(ident);
+        return init_token(TK_KW_IF, NULL);
+    } else if (string_eq(ident, "func")) {
+        string_drop(ident);
+        return init_token(TK_KW_FUNC, NULL);
+    } else return init_token(TK_IDENT, ident);
 }
 
 static token_t lexing_number(lexer_t* lexer, size_t start) {
