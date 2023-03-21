@@ -4,7 +4,7 @@
 #include "lexer.h"
 #include "../string_utils.h"
 
-lexer_t* new_lexer(char* path) {
+lexer_t* from_file_lexer(char* path) {
     lexer_t* lexer = calloc(sizeof(lexer_t), 1);
     string_t* src = NULL;
     size_t len = 0;
@@ -32,6 +32,20 @@ lexer_t* new_lexer(char* path) {
     return lexer;
 }
 
+lexer_t* new_lexer(char* path, char* src) {
+    lexer_t* lexer = calloc(sizeof(lexer_t), 1);
+    string_t* string_src = new_string(src);
+
+    if (string_src == NULL)
+        return NULL;
+
+    lexer->filename = path;
+    lexer->src = string_src;
+    lexer->i = 0;
+
+    return lexer;
+}
+
 static token_t lexing_ident(lexer_t* lexer, size_t start) {
     while (isalnum(string_get(lexer->src, lexer->i++)));
 
@@ -41,8 +55,8 @@ static token_t lexing_ident(lexer_t* lexer, size_t start) {
 static token_t lexing_number(lexer_t* lexer, size_t start) {
     while (isdigit(string_get(lexer->src, lexer->i++)));
 
-    if (string_get(lexer->src, lexer->i) == '.' &&
-        isdigit(string_get(lexer->src, lexer->i + 1))) {
+    if (string_get(lexer->src, lexer->i - 1) == '.' &&
+        isdigit(string_get(lexer->src, lexer->i))) {
         while (isdigit(string_get(lexer->src, lexer->i++)));
 
         return init_token(TK_FLOAT,
@@ -56,7 +70,7 @@ static token_t lexing_string(lexer_t* lexer) {
     string_t* str = new_string("");
     char c;
 
-    while ((c = string_get(lexer->src, lexer->i++)) != -1) {
+    while ((c = string_get(lexer->src, lexer->i++)) > 0) {
         if (c == '\\') {
             switch ((c = string_get(lexer->src, lexer->i++))) {
             case '0':
@@ -95,7 +109,7 @@ static token_t lexing_string(lexer_t* lexer) {
 
 token_t lexer_next_token(lexer_t* self) {
     char c;
-    while ((c = string_get(self->src, self->i++)) != -1) {
+    while ((c = string_get(self->src, self->i++)) > 0) {
         if (!isascii(c)) {
             fprintf(stderr,
                 "\033[31merror\033[39m: '%c' is a non-valid ascii character \n",
