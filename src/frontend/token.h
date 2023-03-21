@@ -4,6 +4,10 @@
 #include "../string_utils.h"
 
 typedef enum TokenKind {
+    TK_KW_LET,
+    TK_KW_IF,
+    TK_KW_FUNC,
+
     TK_IDENT,
     TK_STRING,
     TK_INT,

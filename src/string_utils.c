@@ -80,6 +80,13 @@ inline char string_get(string_t* self, size_t index) {
     return self->data[index * sizeof(char)];
 }
 
+/**
+ * compare the content of self with the str
+ */
+bool string_eq(string_t* self, char* str) {
+    return strcmp(self->data, str) == 0;
+}
+
 /*
  * return new string_t object with the slice desired or NULL if an error
  * occured.

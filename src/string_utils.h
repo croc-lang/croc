@@ -1,6 +1,7 @@
 #ifndef STRING_H
 #define STRING_H
 #include <stdio.h>
+#include <stdbool.h>
 typedef struct String {
     size_t len;
     char* data;
@@ -9,6 +10,8 @@ typedef struct String {
 string_t* new_string(char* str);
 string_t* sized_string(size_t len);
 char string_get(string_t* self, size_t index);
+bool string_eq(string_t* self, char* str2);
+
 string_t* string_slice(string_t* self, size_t start, size_t end);
 string_t* string_push(string_t* self, char* str2);
 string_t* string_push_char(string_t* self, char c);
