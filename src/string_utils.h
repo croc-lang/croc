@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 typedef struct String {
+    size_t capacity;
     size_t len;
     char* data;
 } string_t;
