@@ -9,9 +9,7 @@
 string_t* new_string(char* src) {
     size_t len = strlen(src);
     char* data = NULL;
-    string_t* str = NULL;
-
-    str = calloc(1, sizeof(string_t));
+    string_t* str = malloc(sizeof(string_t));
 
     if (str == NULL)
         return NULL;
@@ -23,6 +21,7 @@ string_t* new_string(char* src) {
 
     memcpy(data, src, len);
 
+    str->capacity = len ? len : 1;
     str->len = len;
     str->data = data;
 
@@ -35,9 +34,7 @@ string_t* new_string(char* src) {
  */
 string_t* sized_string(size_t len) {
     char* data = NULL;
-    string_t* str = NULL;
-
-    str = calloc(1, sizeof(string_t));
+    string_t* str = malloc(sizeof(string_t));
 
     if (str == NULL)
         return NULL;
@@ -47,6 +44,7 @@ string_t* sized_string(size_t len) {
     if (data == NULL)
         return NULL;
 
+    str->capacity = len ? len : 1;
     str->len = len;
     str->data = data;
 
@@ -59,10 +57,17 @@ string_t* sized_string(size_t len) {
  * failed.
  */
 inline static char* string_resize(string_t* self, size_t len) {
-    char* data = realloc(self->data, sizeof(char) * len + 1);
+    if (self->capacity >= len) {
+        self->len = len;
+        return self->data;
+    }
+
+    size_t capacity = self->capacity * (len / self->capacity + 1);
+    char* data = realloc(self->data, sizeof(char) * capacity);
 
     if (data) {
         self->data = data;
+        self->capacity = capacity;
         self->len = len;
     }
 
