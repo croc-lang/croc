@@ -119,25 +119,100 @@ static token_t lexing_string(lexer_t* lexer) {
 }
 
 token_t lexer_next_token(lexer_t* self) {
+    char next_c;
     char c;
     while ((c = string_get(self->src, self->i++)) > 0) {
+        next_c = string_get(self->src, self->i);
+
         if (!isascii(c)) {
             fprintf(stderr,
                 "\033[31merror\033[39m: '%c' is a non-valid ascii character \n",
                 c);
 
             continue;
-        }
-        else if (isblank(c) || isspace(c)) continue;
-        else if (c == '/' && string_get(self->src, self->i) == '/') {
-            c = string_get(self->src, self->i++);
-            while (c != -1 && c != '\n') c = string_get(self->src, self->i++);
-            continue;
-        }
-        else if (c == '"') return lexing_string(self);
+        } else if (isblank(c) || isspace(c)) continue;
         else if (isdigit(c)) return lexing_number(self, self->i - 1);
         else if (isalpha(c)) return lexing_ident(self, self->i - 1);
+        else if (c == '"') return lexing_string(self);
+        else if (c == '/' && next_c == '/') {
+            do { c = string_get(self->src, self->i++); } while (c != -1 && c != '\n');
+            continue;
+        } else if (next_c == '=') {
+            self->i++;
+            switch (c) {
+            case '=': return init_token(TK_CMP_EQ, NULL);
+            case '!': return init_token(TK_CMP_NE, NULL);
+            case '>': return init_token(TK_CMP_GE, NULL);
+            case '<': return init_token(TK_CMP_LE, NULL);
+            // TODO(hana) += -= ...
+            default:
+                fprintf(stderr,
+                    "\033[31merror\033[39m: the character '%c' was invalid\n",
+                    c);
+                exit(1);
+            }
+        } else if (c == '<' && next_c == '<') {
+            self->i++;
+            return init_token(TK_BIT_SL, NULL);
+        } else if (c == '>' && next_c == '>') {
+            self->i++;
+            return init_token(TK_BIT_SR, NULL);
+        } else if (c == '&' && next_c == '&') {
+            self->i++;
+            return init_token(TK_BOOL_AND, NULL);
+        } else if (c == '|' && next_c == '|') {
+            self->i++;
+            return init_token(TK_BOOL_OR, NULL);
+        } else if (c == ':' && next_c == ':') {
+            self->i++;
+            return init_token(TK_DB_COLON, NULL);
+        } else if (c == '-' && next_c == '>') {
+            self->i++;
+            return init_token(TK_ARROW, NULL);
+        } else if (c == '+')
+            return init_token(TK_PLUS, NULL);
+        else if (c == '-')
+            return init_token(TK_MINUS, NULL);
+        else if (c == '*')
+            return init_token(TK_STAR, NULL);
+        else if (c == '/')
+            return init_token(TK_SLASH, NULL);
+        else if (c == '%')
+            return init_token(TK_PERCENT, NULL);
+        else if (c == '&')
+            return init_token(TK_BIN_AND, NULL);
+        else if (c == '|')
+            return init_token(TK_BIN_OR, NULL);
+        else if (c == '^')
+            return init_token(TK_BIN_XOR, NULL);
+        else if (c == '=')
+            return init_token(TK_EQ, NULL);
+        else if (c == '!')
+            return init_token(TK_BANG, NULL);
+        else if (c == '~')
+            return init_token(TK_TILDE, NULL);
+        else if (c == '<')
+            return init_token(TK_CMP_LT, NULL);
+        else if (c == '>')
+            return init_token(TK_CMP_GT, NULL);
+        else if (c == ';')
+            return init_token(TK_SEMICOLON, NULL);
+        else if (c == ',')
+            return init_token(TK_COMMA, NULL);
+        else if (c == '(')
+            return init_token(TK_LPAREN, NULL);
+        else if (c == ')')
+            return init_token(TK_RPAREN, NULL);
+        else if (c == '{')
+            return init_token(TK_LBRACE, NULL);
+        else if (c == '}')
+            return init_token(TK_RBRACE, NULL);
+        else if (c == '[')
+            return init_token(TK_LBRACKET, NULL);
+        else if (c == ']')
+            return init_token(TK_RBRACKET, NULL);
         else {
+            printf("%c\n", c);
             fprintf(stderr,
                     "\033[31merror\033[39m: the character '%c' was invalid\n",
                     c);

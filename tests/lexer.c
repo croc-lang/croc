@@ -115,3 +115,56 @@ Test(lexer, keywords) {
 
     lexer_drop(lexer);
 }
+
+Test(lexer, operators) {
+    const int size = 31;
+
+    lexer_t* lexer = new_lexer("test.cr", "( ) { } [ ] , ; :: -> "
+                                          "+ - * / % | & ^ ! ~ "
+                                          "= == != < > <= >= << >> || &&");
+
+    token_kind_t keywords[size] = {
+        TK_LPAREN,
+        TK_RPAREN,
+        TK_LBRACE,
+        TK_RBRACE,
+        TK_LBRACKET,
+        TK_RBRACKET,
+        TK_COMMA,
+        TK_SEMICOLON,
+        TK_DB_COLON,
+        TK_ARROW,
+        TK_PLUS,
+        TK_MINUS,
+        TK_STAR,
+        TK_SLASH,
+        TK_PERCENT,
+        TK_BIN_OR,
+        TK_BIN_AND,
+        TK_BIN_XOR,
+        TK_BANG,
+        TK_TILDE,
+        TK_EQ,
+        TK_CMP_EQ,
+        TK_CMP_NE,
+        TK_CMP_LT,
+        TK_CMP_GT,
+        TK_CMP_LE,
+        TK_CMP_GE,
+        TK_BIT_SL,
+        TK_BIT_SR,
+        TK_BOOL_OR,
+        TK_BOOL_AND,
+    };
+
+    for (size_t i = 0; i < size; i++) {
+        token_t actual = lexer_next_token(lexer);
+
+        cr_assert_null(actual.value);
+        cr_assert_eq(actual.kind, keywords[i]);
+
+        token_drop(&actual);
+    }
+
+    lexer_drop(lexer);
+}
