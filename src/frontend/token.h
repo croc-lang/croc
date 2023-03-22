@@ -8,6 +8,38 @@ typedef enum TokenKind {
     TK_KW_IF,
     TK_KW_FUNC,
 
+    TK_LPAREN,     // (
+    TK_RPAREN,     // )
+    TK_LBRACE,     // {
+    TK_RBRACE,     // }
+    TK_LBRACKET,   // [
+    TK_RBRACKET,   // ]
+    TK_COMMA,      // ,
+    TK_SEMICOLON,  // ;
+    TK_DB_COLON,   // ::
+    TK_ARROW,      // ->
+    TK_PLUS,       // +
+    TK_MINUS,      // -
+    TK_STAR,       // *
+    TK_SLASH,      // /
+    TK_PERCENT,    // %
+    TK_BOOL_OR,    // ||
+    TK_BOOL_AND,   // &&
+    TK_BIN_OR,     // |
+    TK_BIN_AND,    // &
+    TK_BIN_XOR,    // ^
+    TK_EQ,         // =
+    TK_CMP_EQ,     // ==
+    TK_BANG,       // !
+    TK_TILDE,      // ~
+    TK_CMP_NE,     // !=
+    TK_CMP_LT,     // <
+    TK_CMP_GT,     // >
+    TK_CMP_LE,     // <=
+    TK_CMP_GE,     // >=
+    TK_BIT_SL,     // <<
+    TK_BIT_SR,     // >>
+
     TK_IDENT,
     TK_STRING,
     TK_INT,

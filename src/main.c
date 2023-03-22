@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    lexer_t* lexer = new_lexer(argv[1]);
+    lexer_t* lexer = from_file_lexer(argv[1]);
     lexer_drop(lexer);
 
     return 0;
