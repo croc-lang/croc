@@ -39,6 +39,8 @@ typedef enum TokenKind {
     TK_CMP_GE,     // >=
     TK_BIT_SL,     // <<
     TK_BIT_SR,     // >>
+    TK_INCREMENT,  // ++
+    TK_DECREMENT,  // --
 
     TK_IDENT,
     TK_STRING,

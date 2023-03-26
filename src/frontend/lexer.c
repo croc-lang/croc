@@ -4,6 +4,11 @@
 #include "lexer.h"
 #include "../string_utils.h"
 
+#define INC_AND_RETURN(lexer, kind) { \
+    lexer->i++;                       \
+    return init_token(kind, NULL);    \
+}
+
 lexer_t* from_file_lexer(char* path) {
     lexer_t* lexer = calloc(sizeof(lexer_t), 1);
     string_t* src = NULL;
@@ -135,7 +140,8 @@ token_t lexer_next_token(lexer_t* self) {
         else if (isalpha(c)) return lexing_ident(self, self->i - 1);
         else if (c == '"') return lexing_string(self);
         else if (c == '/' && next_c == '/') {
-            do { c = string_get(self->src, self->i++); } while (c != -1 && c != '\n');
+            do { c = string_get(self->src, self->i++); }
+            while (c != -1 && c != '\n');
             continue;
         } else if (next_c == '=') {
             self->i++;
@@ -151,71 +157,40 @@ token_t lexer_next_token(lexer_t* self) {
                     c);
                 exit(1);
             }
-        } else if (c == '<' && next_c == '<') {
-            self->i++;
-            return init_token(TK_BIT_SL, NULL);
-        } else if (c == '>' && next_c == '>') {
-            self->i++;
-            return init_token(TK_BIT_SR, NULL);
-        } else if (c == '&' && next_c == '&') {
-            self->i++;
-            return init_token(TK_BOOL_AND, NULL);
-        } else if (c == '|' && next_c == '|') {
-            self->i++;
-            return init_token(TK_BOOL_OR, NULL);
-        } else if (c == ':' && next_c == ':') {
-            self->i++;
-            return init_token(TK_DB_COLON, NULL);
-        } else if (c == '-' && next_c == '>') {
-            self->i++;
-            return init_token(TK_ARROW, NULL);
-        } else if (c == '+')
-            return init_token(TK_PLUS, NULL);
-        else if (c == '-')
-            return init_token(TK_MINUS, NULL);
-        else if (c == '*')
-            return init_token(TK_STAR, NULL);
-        else if (c == '/')
-            return init_token(TK_SLASH, NULL);
-        else if (c == '%')
-            return init_token(TK_PERCENT, NULL);
-        else if (c == '&')
-            return init_token(TK_BIN_AND, NULL);
-        else if (c == '|')
-            return init_token(TK_BIN_OR, NULL);
-        else if (c == '^')
-            return init_token(TK_BIN_XOR, NULL);
-        else if (c == '=')
-            return init_token(TK_EQ, NULL);
-        else if (c == '!')
-            return init_token(TK_BANG, NULL);
-        else if (c == '~')
-            return init_token(TK_TILDE, NULL);
-        else if (c == '<')
-            return init_token(TK_CMP_LT, NULL);
-        else if (c == '>')
-            return init_token(TK_CMP_GT, NULL);
-        else if (c == ';')
-            return init_token(TK_SEMICOLON, NULL);
-        else if (c == ',')
-            return init_token(TK_COMMA, NULL);
-        else if (c == '(')
-            return init_token(TK_LPAREN, NULL);
-        else if (c == ')')
-            return init_token(TK_RPAREN, NULL);
-        else if (c == '{')
-            return init_token(TK_LBRACE, NULL);
-        else if (c == '}')
-            return init_token(TK_RBRACE, NULL);
-        else if (c == '[')
-            return init_token(TK_LBRACKET, NULL);
-        else if (c == ']')
-            return init_token(TK_RBRACKET, NULL);
+        } else if (c == '<' && next_c == '<') INC_AND_RETURN(self, TK_BIT_SL)
+        else if (c == '>' && next_c == '>') INC_AND_RETURN(self, TK_BIT_SR)
+        else if (c == '&' && next_c == '&') INC_AND_RETURN(self, TK_BOOL_AND)
+        else if (c == '|' && next_c == '|') INC_AND_RETURN(self, TK_BOOL_OR)
+        else if (c == ':' && next_c == ':') INC_AND_RETURN(self, TK_DB_COLON)
+        else if (c == '-' && next_c == '-') INC_AND_RETURN(self, TK_DECREMENT)
+        else if (c == '+' && next_c == '+') INC_AND_RETURN(self, TK_INCREMENT)
+        else if (c == '-' && next_c == '>') INC_AND_RETURN(self, TK_ARROW)
+        else if (c == '+') return init_token(TK_PLUS, NULL);
+        else if (c == '-') return init_token(TK_MINUS, NULL);
+        else if (c == '*') return init_token(TK_STAR, NULL);
+        else if (c == '/') return init_token(TK_SLASH, NULL);
+        else if (c == '%') return init_token(TK_PERCENT, NULL);
+        else if (c == '&') return init_token(TK_BIN_AND, NULL);
+        else if (c == '|') return init_token(TK_BIN_OR, NULL);
+        else if (c == '^') return init_token(TK_BIN_XOR, NULL);
+        else if (c == '=') return init_token(TK_EQ, NULL);
+        else if (c == '!') return init_token(TK_BANG, NULL);
+        else if (c == '~') return init_token(TK_TILDE, NULL);
+        else if (c == '<') return init_token(TK_CMP_LT, NULL);
+        else if (c == '>') return init_token(TK_CMP_GT, NULL);
+        else if (c == ';') return init_token(TK_SEMICOLON, NULL);
+        else if (c == ',') return init_token(TK_COMMA, NULL);
+        else if (c == '(') return init_token(TK_LPAREN, NULL);
+        else if (c == ')') return init_token(TK_RPAREN, NULL);
+        else if (c == '{') return init_token(TK_LBRACE, NULL);
+        else if (c == '}') return init_token(TK_RBRACE, NULL);
+        else if (c == '[') return init_token(TK_LBRACKET, NULL);
+        else if (c == ']') return init_token(TK_RBRACKET, NULL);
         else {
             printf("%c\n", c);
             fprintf(stderr,
-                    "\033[31merror\033[39m: the character '%c' was invalid\n",
-                    c);
+                "\033[31merror\033[39m: the character '%c' was invalid\n",
+                c);
             exit(1);
         }
     }
