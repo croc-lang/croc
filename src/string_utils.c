@@ -82,7 +82,7 @@ inline char string_get(string_t* self, size_t index) {
     if (index >= self->len)
         return -1;
 
-    return self->data[index * sizeof(char)];
+    return self->data[index];
 }
 
 /**
