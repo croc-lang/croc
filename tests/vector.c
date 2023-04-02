@@ -2,31 +2,6 @@
 #include "../src/string_utils.h"
 #include "../src/vector.h"
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/errno.h>
-// code source from https://www.youtube.com/watch?v=yM9zteeTCiI
-int is_mapped(const void* ptr, int bytes) {
-    if (ptr == NULL) return 0;
-
-    int valid = 1;
-    // create pipe
-    int fd[2];
-    pipe(fd);
-    
-    int a = write(fd[1], ptr, bytes);
-    if (a < 0) valid = 0;
-
-    close(fd[0]);
-    close(fd[1]);
-
-    return valid;
-}
-
 Test(vector, alloc_new_vector) {
     vector_t* vector = new_vector();
 

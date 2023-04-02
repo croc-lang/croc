@@ -1,14 +1,15 @@
 #ifndef FRONTEND_EXPR_H
 #define FRONTEND_EXPR_H
-#include <stdbool.h>
 #include "../string_utils.h"
 
-typedef struct BinaryExpr{
+typedef struct Expr expr_t;
+
+typedef struct BinaryExpr {
     expr_t* left;
     expr_t* right;
 } binary_expr_t;
 
-typedef struct UnaryExpr{
+typedef struct UnaryExpr {
     expr_t* value;
 } unary_expr_t;
 
