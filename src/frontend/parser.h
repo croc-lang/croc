@@ -1,0 +1,13 @@
+#ifndef FRONTEND_PARSER_H
+#define FRONTEND_PARSER_H
+#include "statement.h"
+#include "lexer.h"
+
+typedef struct Parser {
+    lexer_t* lexer;
+    token_t current;
+} parser_t;
+
+parser_t* new_parser(lexer_t* lexer);
+stmt_t* parser_next(parser_t* self);
+#endif

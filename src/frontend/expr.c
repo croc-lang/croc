@@ -25,7 +25,20 @@ void binary_expr_drop(binary_expr_t* self) {
     free(self);
 }
 
-expr_t* new_expr(expr_kind_t kind, expr_value_t* value) {
+arg_expr_t* new_arg_expr(expr_t* type, string_t* name) {
+    arg_expr_t* arg = malloc(sizeof(arg_expr_t));
+    arg->type = type;
+    arg->name = name;
+    return arg;
+}
+
+void arg_expr_drop(arg_expr_t* self) {
+    string_drop(self->name);
+    expr_drop(self->type);
+    free(self);
+}
+
+expr_t* new_expr(expr_kind_t kind, expr_value_t value) {
     expr_t* expr = malloc(sizeof(expr_t));
     expr->kind = kind;
     expr->value = value;
@@ -34,10 +47,10 @@ expr_t* new_expr(expr_kind_t kind, expr_value_t* value) {
 
 void expr_drop(expr_t* self) {
     if (self->kind >= EX_VAR_ASSIGN && self->kind <= EX_BIN_MOD)
-        binary_expr_drop(self->value);
+        binary_expr_drop(self->value.binary);
     else if (self->kind >= EX_UNA_SUFFIX_INCR && self->kind <= EX_UNA_NEG)
-        unary_expr_drop(self->value);
+        unary_expr_drop(self->value.unary);
     else if (self->kind >= EX_VAR_ASSIGN && self->kind <= EX_BIN_MOD)
-        string_drop(self->value);
+        string_drop(self->value.value);
     free(self);
 }

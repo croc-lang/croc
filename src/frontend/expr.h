@@ -47,17 +47,25 @@ typedef union ExprValue {
     string_t* value;
 } expr_value_t;
 
+typedef struct ArgExpr {
+    expr_t* type;
+    string_t* name;
+} arg_expr_t;
+
 typedef struct Expr {
     expr_kind_t kind;
-    expr_value_t* value;
+    expr_value_t value;
 } expr_t;
 
 unary_expr_t* new_unary_expr(expr_t* value);
 void unary_expr_drop(unary_expr_t* self);
 
+arg_expr_t* new_arg_expr(expr_t* type, string_t* name);
+void arg_expr_drop(arg_expr_t* self);
+
 binary_expr_t* new_binary_expr(expr_t* left, expr_t* right);
 void binary_expr_drop(binary_expr_t* self);
 
-expr_t* new_expr(expr_kind_t kind, expr_value_t* value);
+expr_t* new_expr(expr_kind_t kind, expr_value_t value);
 void expr_drop(expr_t* self);
 #endif
