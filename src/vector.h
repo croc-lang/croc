@@ -4,7 +4,6 @@
 #include <stdbool.h>
 typedef struct Vector {
     size_t capacity;
-    size_t size;
     size_t len;
     void** data;
 } vector_t;
