@@ -7,20 +7,20 @@
 
 typedef struct Stmt stmt_t;
 
-typedef struct VarStmt{
+typedef struct VarStmt {
     bool constant;
     stmt_t* left;
     stmt_t* right;
 } var_stmt_t;
 
-typedef struct FuncStmt{
+typedef struct FuncStmt {
     string_t* name;
     expr_t* return_type;
     /*expr_arg_t*/vector_t* args;
     /*stmt_t*/vector_t* body;
 } func_stmt_t;
 
-typedef struct IfStmt{
+typedef struct IfStmt {
     expr_t* condition;
     /*stmt_t*/vector_t* body;
 } if_stmt_t;
@@ -29,6 +29,7 @@ typedef enum StmtKind {
     STMT_VAR_DECLARATION,
     STMT_FUNC_DEFINITION,
     STMT_IF,
+    STMT_EXPR,
 } stmt_kind_t;
 
 typedef union StmtValue {
@@ -38,6 +39,8 @@ typedef union StmtValue {
     func_stmt_t* func;
     // STMT_IF
     if_stmt_t* if_stmt;
+    // STMT_EXPR
+    expr_t* expr;
 } stmt_value_t;
 
 typedef struct Stmt {

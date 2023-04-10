@@ -1,6 +1,7 @@
 #ifndef FRONTEND_EXPR_H
 #define FRONTEND_EXPR_H
 #include "../string_utils.h"
+#include "token.h"
 
 typedef struct Expr expr_t;
 
@@ -31,9 +32,11 @@ typedef enum ExprKind {
     EX_UNA_NEG,
 
     EX_IDENT,
-    EX_INT_LETERAL,
-    EX_FLOAT_LETERAL,
+    EX_INT_LITERAL,
+    EX_FLOAT_LITERAL,
     EX_STRING_LITERAL,
+
+    EX_NONE
 } expr_kind_t;
 
 typedef union ExprValue {
@@ -68,4 +71,6 @@ void binary_expr_drop(binary_expr_t* self);
 
 expr_t* new_expr(expr_kind_t kind, expr_value_t value);
 void expr_drop(expr_t* self);
+
+expr_kind_t from_token(token_kind_t kind);
 #endif

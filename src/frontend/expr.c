@@ -54,3 +54,20 @@ void expr_drop(expr_t* self) {
         string_drop(self->value.value);
     free(self);
 }
+
+expr_kind_t from_token(token_kind_t kind) {
+    switch (kind) {
+    case TK_PLUS: return EX_BIN_ADD;
+    case TK_MINUS: return EX_BIN_SUB;
+    case TK_STAR: return EX_BIN_MUL;
+    case TK_SLASH: return EX_BIN_DIV;
+    case TK_PERCENT: return EX_BIN_MOD;
+
+    case TK_IDENT: return EX_IDENT;
+    case TK_STRING: return EX_STRING_LITERAL;
+    case TK_INT: return EX_INT_LITERAL;
+    case TK_FLOAT: return EX_FLOAT_LITERAL;
+
+    default: return EX_NONE;
+    }
+}
