@@ -10,4 +10,6 @@ typedef struct Parser {
 
 parser_t* new_parser(lexer_t* lexer);
 stmt_t* parser_next(parser_t* self);
+expr_t* parse_expr(parser_t* self);
+void parser_drop(parser_t* self);
 #endif

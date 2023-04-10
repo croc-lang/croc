@@ -120,7 +120,7 @@ Test(lexer, operators) {
     const int size = 31;
 
     lexer_t* lexer = new_lexer("test.cr", "( ) { } [ ] , ; :: -> "
-                                          "+ - * / % | & ^ ! ~ "
+                                          "+ - * / % | & ^ ! ~ ++ --"
                                           "= == != < > <= >= << >> || &&");
 
     token_kind_t keywords[size] = {
@@ -144,6 +144,8 @@ Test(lexer, operators) {
         TK_BIN_XOR,
         TK_BANG,
         TK_TILDE,
+        TK_INCREMENT,
+        TK_DECREMENT,
         TK_EQ,
         TK_CMP_EQ,
         TK_CMP_NE,
@@ -162,6 +164,32 @@ Test(lexer, operators) {
 
         cr_assert_null(actual.value);
         cr_assert_eq(actual.kind, keywords[i]);
+
+        token_drop(&actual);
+    }
+
+    lexer_drop(lexer);
+}
+
+Test(lexer, token_proximity) {
+    const int size = 3;
+
+    lexer_t* lexer = new_lexer("test.cr", "test()");
+
+    token_kind_t keywords[size] = {
+        TK_IDENT,
+        TK_LPAREN,
+        TK_RPAREN,
+    };
+
+    for (size_t i = 0; i < size; i++) {
+        token_t actual = lexer_next_token(lexer);
+
+        cr_assert_eq(actual.kind, keywords[i]);
+        if (keywords[i] == TK_IDENT)
+            cr_assert_str_eq(actual.value->data, "test");
+        else
+            cr_assert_null(actual.value);
 
         token_drop(&actual);
     }

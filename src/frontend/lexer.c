@@ -54,7 +54,7 @@ lexer_t* new_lexer(char* path, char* src) {
 static token_t lexing_ident(lexer_t* lexer, size_t start) {
     while (isalnum(string_get(lexer->src, lexer->i++)));
 
-    string_t* ident = string_slice(lexer->src, start, lexer->i - 1);
+    string_t* ident = string_slice(lexer->src, start, --lexer->i);
 
     if (string_eq(ident, "let")) {
         string_drop(ident);
@@ -71,15 +71,15 @@ static token_t lexing_ident(lexer_t* lexer, size_t start) {
 static token_t lexing_number(lexer_t* lexer, size_t start) {
     while (isdigit(string_get(lexer->src, lexer->i++)));
 
-    if (string_get(lexer->src, lexer->i - 1) == '.' &&
-        isdigit(string_get(lexer->src, lexer->i))) {
+    char c = string_get(lexer->src, lexer->i - 1);
+    if (c > 0 && c == '.' && isdigit(string_get(lexer->src, lexer->i))) {
         while (isdigit(string_get(lexer->src, lexer->i++)));
 
         return init_token(TK_FLOAT,
             string_slice(lexer->src, start, lexer->i - 1));
     }
 
-    return init_token(TK_INT, string_slice(lexer->src, start, lexer->i - 1));
+    return init_token(TK_INT, string_slice(lexer->src, start, --lexer->i));
 }
 
 static token_t lexing_string(lexer_t* lexer) {
@@ -187,7 +187,6 @@ token_t lexer_next_token(lexer_t* self) {
         else if (c == '[') return init_token(TK_LBRACKET, NULL);
         else if (c == ']') return init_token(TK_RBRACKET, NULL);
         else {
-            printf("%c\n", c);
             fprintf(stderr,
                 "\033[31merror\033[39m: the character '%c' was invalid\n",
                 c);
