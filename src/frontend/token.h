@@ -2,6 +2,7 @@
 #define FRONTEND_TOKEN_H
 #include <stdio.h>
 #include "../string_utils.h"
+#include "../location.h"
 
 typedef enum TokenKind {
     TK_KW_LET,
@@ -52,15 +53,9 @@ typedef enum TokenKind {
 typedef struct Token {
     token_kind_t kind;
     string_t* value;
+    location_t* location;
 } token_t;
 
-typedef struct Location {
-    size_t line;
-    size_t col;
-    size_t pos;
-    size_t size;
-} location_t;
-
-token_t init_token(token_kind_t kind, string_t* value);
+token_t init_token(token_kind_t kind, string_t* value, location_t* location);
 void token_drop(token_t* self);
 #endif
