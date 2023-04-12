@@ -5,8 +5,8 @@
 #include "../string_utils.h"
 
 #define INC_AND_RETURN(lexer, kind) { \
-    lexer->i++;                       \
-    return init_token(kind, NULL);    \
+    lexer_forward(lexer); \
+    return init_token(kind, NULL, new_location(line, col, start, lexer->i)); \
 }
 
 lexer_t* from_file_lexer(char* path) {
@@ -28,9 +28,13 @@ lexer_t* from_file_lexer(char* path) {
 
     fread(src->data, len, 1, file);
 
+    lexer->context = new_context();
     lexer->filename = path;
     lexer->src = src;
     lexer->i = 0;
+    lexer->line = 1;
+    lexer->col = 1;
+    lexer->prev_col = 0;
 
     fclose(file);
 
@@ -44,51 +48,85 @@ lexer_t* new_lexer(char* path, char* src) {
     if (string_src == NULL)
         return NULL;
 
+    lexer->context = new_context();
     lexer->filename = path;
     lexer->src = string_src;
     lexer->i = 0;
+    lexer->line = 1;
+    lexer->col = 1;
+    lexer->prev_col = 0;
 
     return lexer;
 }
 
-static token_t lexing_ident(lexer_t* lexer, size_t start) {
-    while (isalnum(string_get(lexer->src, lexer->i++)));
+static size_t lexer_forward(lexer_t* self) {
+    size_t index = self->i++;
+    self->prev_col = self->col;
+    if (string_get(self->src, self->i) == '\n') {
+        self->col = 1;
+        self->line += 1;
+    } else self->col += 1;
+    return index;
+}
 
-    string_t* ident = string_slice(lexer->src, start, --lexer->i);
+static size_t lexer_backward(lexer_t* self) {
+    if (self->col == 1) self->line -= 1;
+    self->col = self->prev_col;
+    return --self->i;
+}
+
+static token_t lexing_ident(lexer_t* lexer, size_t start) {
+    size_t line, col = (lexer->line, lexer->col);
+    while (isalnum(string_get(lexer->src, lexer_forward(lexer))));
+
+    string_t* ident = string_slice(lexer->src, start, lexer_backward(lexer));
 
     if (string_eq(ident, "let")) {
         string_drop(ident);
-        return init_token(TK_KW_LET, NULL);
+        return init_token(TK_KW_LET,
+            NULL,
+            new_location(line, col, start, lexer->i));
     } else if (string_eq(ident, "if")) {
         string_drop(ident);
-        return init_token(TK_KW_IF, NULL);
+        return init_token(TK_KW_IF,
+            NULL,
+            new_location(line, col, start, lexer->i));
     } else if (string_eq(ident, "func")) {
         string_drop(ident);
-        return init_token(TK_KW_FUNC, NULL);
-    } else return init_token(TK_IDENT, ident);
+        return init_token(TK_KW_FUNC,
+            NULL,
+            new_location(line, col, start, lexer->i));
+    } else return init_token(TK_IDENT,
+        ident,
+        new_location(line, col, start, lexer->i));
 }
 
 static token_t lexing_number(lexer_t* lexer, size_t start) {
-    while (isdigit(string_get(lexer->src, lexer->i++)));
+    size_t line, col = (lexer->line, lexer->col);
+    while (isdigit(string_get(lexer->src, lexer_forward(lexer))));
 
     char c = string_get(lexer->src, lexer->i - 1);
     if (c > 0 && c == '.' && isdigit(string_get(lexer->src, lexer->i))) {
-        while (isdigit(string_get(lexer->src, lexer->i++)));
+        while (isdigit(string_get(lexer->src, lexer_forward(lexer))));
 
         return init_token(TK_FLOAT,
-            string_slice(lexer->src, start, lexer->i - 1));
+            string_slice(lexer->src, start, lexer_backward(lexer)),
+            new_location(line, col, start, lexer->i));
     }
 
-    return init_token(TK_INT, string_slice(lexer->src, start, --lexer->i));
+    return init_token(TK_INT,
+        string_slice(lexer->src, start, lexer_backward(lexer)),
+        new_location(line, col, start, lexer->i));
 }
 
-static token_t lexing_string(lexer_t* lexer) {
+static token_t lexing_string(lexer_t* lexer, size_t start) {
+    size_t line, col = (lexer->line, lexer->col);
     string_t* str = new_string("");
     char c;
 
-    while ((c = string_get(lexer->src, lexer->i++)) > 0) {
+    while ((c = string_get(lexer->src, lexer_forward(lexer))) > 0) {
         if (c == '\\') {
-            switch ((c = string_get(lexer->src, lexer->i++))) {
+            switch ((c = string_get(lexer->src, lexer_forward(lexer)))) {
             case '0':
                 string_push_char(str, '\0');
                 break;
@@ -120,42 +158,55 @@ static token_t lexing_string(lexer_t* lexer) {
         else string_push_char(str, c);
     }
 
-    return init_token(TK_STRING, str);
+    return init_token(TK_STRING, str, new_location(line, col, start, lexer->i));
 }
 
 token_t lexer_next_token(lexer_t* self) {
-    char next_c;
-    char c;
-    while ((c = string_get(self->src, self->i++)) > 0) {
+    size_t line, col, start;
+    char next_c, c;
+    while ((c = string_get(self->src, lexer_forward(self))) > 0) {
+        line, col, start = (self->line, self->col, self->i - 1);
         next_c = string_get(self->src, self->i);
 
         if (!isascii(c)) {
-            fprintf(stderr,
-                "\033[31merror\033[39m: '%c' is a non-valid ascii character \n",
-                c);
+            while (!isascii(string_get(self->src, lexer_forward(self))));
+            string_t* slice = string_slice(self->src, start,
+                lexer_backward(self));
 
+            context_add_error(self->context,
+                new_error(CTX_ERR_INVALID_SLICE,
+                    format_string("`%s` was invalid", slice->data),
+                    new_location(line, col, start, self->i)));
+            string_drop(slice);
             continue;
         } else if (isblank(c) || isspace(c)) continue;
         else if (isdigit(c)) return lexing_number(self, self->i - 1);
         else if (isalpha(c)) return lexing_ident(self, self->i - 1);
-        else if (c == '"') return lexing_string(self);
+        else if (c == '"') return lexing_string(self, self->i - 1);
         else if (c == '/' && next_c == '/') {
-            do { c = string_get(self->src, self->i++); }
+            do { c = string_get(self->src, lexer_forward(self)); }
             while (c != -1 && c != '\n');
             continue;
         } else if (next_c == '=') {
-            self->i++;
+            lexer_forward(self);
             switch (c) {
-            case '=': return init_token(TK_CMP_EQ, NULL);
-            case '!': return init_token(TK_CMP_NE, NULL);
-            case '>': return init_token(TK_CMP_GE, NULL);
-            case '<': return init_token(TK_CMP_LE, NULL);
+            case '=': return init_token(TK_CMP_EQ,
+                NULL,
+                new_location(line, col, start, self->i));
+            case '!': return init_token(TK_CMP_NE,
+                NULL,
+                new_location(line, col, start, self->i));
+            case '>': return init_token(TK_CMP_GE,
+                NULL,
+                new_location(line, col, start, self->i));
+            case '<': return init_token(TK_CMP_LE,
+                NULL,
+                new_location(line, col, start, self->i));
             // TODO(hana) += -= ...
-            default:
-                fprintf(stderr,
-                    "\033[31merror\033[39m: the character '%c' was invalid\n",
-                    c);
-                exit(1);
+            default: context_add_error(self->context,
+                new_error(CTX_ERR_INVALID_TOKEN,
+                    format_string("the token `%c=` was invalid", c),
+                    new_location(line, col, start, self->i)));
             }
         } else if (c == '<' && next_c == '<') INC_AND_RETURN(self, TK_BIT_SL)
         else if (c == '>' && next_c == '>') INC_AND_RETURN(self, TK_BIT_SR)
@@ -165,40 +216,83 @@ token_t lexer_next_token(lexer_t* self) {
         else if (c == '-' && next_c == '-') INC_AND_RETURN(self, TK_DECREMENT)
         else if (c == '+' && next_c == '+') INC_AND_RETURN(self, TK_INCREMENT)
         else if (c == '-' && next_c == '>') INC_AND_RETURN(self, TK_ARROW)
-        else if (c == '+') return init_token(TK_PLUS, NULL);
-        else if (c == '-') return init_token(TK_MINUS, NULL);
-        else if (c == '*') return init_token(TK_STAR, NULL);
-        else if (c == '/') return init_token(TK_SLASH, NULL);
-        else if (c == '%') return init_token(TK_PERCENT, NULL);
-        else if (c == '&') return init_token(TK_BIN_AND, NULL);
-        else if (c == '|') return init_token(TK_BIN_OR, NULL);
-        else if (c == '^') return init_token(TK_BIN_XOR, NULL);
-        else if (c == '=') return init_token(TK_EQ, NULL);
-        else if (c == '!') return init_token(TK_BANG, NULL);
-        else if (c == '~') return init_token(TK_TILDE, NULL);
-        else if (c == '<') return init_token(TK_CMP_LT, NULL);
-        else if (c == '>') return init_token(TK_CMP_GT, NULL);
-        else if (c == ';') return init_token(TK_SEMICOLON, NULL);
-        else if (c == ',') return init_token(TK_COMMA, NULL);
-        else if (c == '(') return init_token(TK_LPAREN, NULL);
-        else if (c == ')') return init_token(TK_RPAREN, NULL);
-        else if (c == '{') return init_token(TK_LBRACE, NULL);
-        else if (c == '}') return init_token(TK_RBRACE, NULL);
-        else if (c == '[') return init_token(TK_LBRACKET, NULL);
-        else if (c == ']') return init_token(TK_RBRACKET, NULL);
+        else if (c == '+') return init_token(TK_PLUS,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '-') return init_token(TK_MINUS,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '*') return init_token(TK_STAR,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '/') return init_token(TK_SLASH,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '%') return init_token(TK_PERCENT,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '&') return init_token(TK_BIN_AND,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '|') return init_token(TK_BIN_OR,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '^') return init_token(TK_BIN_XOR,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '=') return init_token(TK_EQ,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '!') return init_token(TK_BANG,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '~') return init_token(TK_TILDE,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '<') return init_token(TK_CMP_LT,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '>') return init_token(TK_CMP_GT,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == ';') return init_token(TK_SEMICOLON,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == ',') return init_token(TK_COMMA,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '(') return init_token(TK_LPAREN,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == ')') return init_token(TK_RPAREN,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '{') return init_token(TK_LBRACE,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '}') return init_token(TK_RBRACE,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == '[') return init_token(TK_LBRACKET,
+            NULL,
+            new_location(line, col, start, self->i));
+        else if (c == ']') return init_token(TK_RBRACKET,
+            NULL,
+            new_location(line, col, start, self->i));
         else {
-            fprintf(stderr,
-                "\033[31merror\033[39m: the character '%c' was invalid\n",
-                c);
-            exit(1);
+            context_add_error(self->context,
+                new_error(CTX_ERR_INVALID_CHAR,
+                    format_string("the character '%c' was invalid", c),
+                    new_location(line, col, start, self->i)));
         }
     }
 
-    return init_token(TK_EOF, NULL);
+    return init_token(TK_EOF,
+        NULL,
+        new_location(line, col, self->src->len, self->src->len));
 }
 
 void lexer_drop(lexer_t* self) {
     string_drop(self->src);
-    // free(self->filename);
     free(self);
 }
