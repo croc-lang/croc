@@ -10,6 +10,7 @@ typedef struct String {
 
 string_t* new_string(char* str);
 string_t* sized_string(size_t len);
+string_t* format_string(const char* str, ...);
 char string_get(string_t* self, size_t index);
 bool string_eq(string_t* self, char* str2);
 
