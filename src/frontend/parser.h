@@ -4,6 +4,8 @@
 #include "lexer.h"
 
 typedef struct Parser {
+    context_t* context;
+
     lexer_t* lexer;
     token_t current;
 } parser_t;

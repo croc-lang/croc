@@ -15,6 +15,7 @@ static expr_t* name(parser_t* self) { \
 
 parser_t* new_parser(lexer_t* lexer) {
     parser_t* parser = malloc(sizeof(parser_t));
+    parser->context = lexer->context;
     parser->lexer = lexer;
     parser->current = lexer_next_token(lexer);
     return parser;
