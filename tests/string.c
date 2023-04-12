@@ -11,6 +11,26 @@ Test(string, alloc_new_string) {
     string_drop(str);
 }
 
+Test(string, empty_sized_string) {
+    string_t* str = sized_string(10);
+
+    cr_assert_str_eq(str->data, "");
+    cr_assert_eq(str->len, 0);
+    cr_assert_eq(str->capacity, 10);
+
+    string_drop(str);
+}
+
+Test(string, formating_string) {
+    string_t* str = format_string("Hi %s!", "Hana");
+
+    cr_assert_str_eq(str->data, "Hi Hana!");
+    cr_assert_eq(str->len, 8);
+    cr_assert_eq(str->capacity, 8);
+
+    string_drop(str);
+}
+
 Test(string, get_string_char_at_index) {
     string_t* str = new_string("Hello");
 

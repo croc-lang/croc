@@ -45,9 +45,24 @@ string_t* sized_string(size_t len) {
         return NULL;
 
     str->capacity = len ? len : 1;
-    str->len = len;
     str->data = data;
+    str->len = 0;
 
+    return str;
+}
+
+string_t* format_string(const char* src, ...) {
+    va_list args;
+
+    va_start(args, src);
+    int len = vsnprintf(NULL, 0, src, args);
+    va_end(args);
+    string_t* str = sized_string(len);
+    str->len = len;
+
+    va_start(args, src);
+    vsnprintf(str->data, len + 1, src, args);
+    va_end(args);
     return str;
 }
 
