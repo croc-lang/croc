@@ -103,8 +103,10 @@ Test(string, push_a_string_into_another_string) {
 
 Test(string, equality) {
     string_t* str = new_string("Hello");
+    string_t* str2 = new_string("Hello");
 
-    cr_assert(string_eq(str, "Hello"));
+    cr_assert(string_eq(str, str2));
+    cr_assert(string_eq_str(str, "Hello"));
 
     string_drop(str);
 }

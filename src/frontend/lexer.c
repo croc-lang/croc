@@ -81,17 +81,17 @@ static token_t lexing_ident(lexer_t* lexer, size_t start) {
 
     string_t* ident = string_slice(lexer->src, start, lexer_backward(lexer));
 
-    if (string_eq(ident, "let")) {
+    if (string_eq_str(ident, "let")) {
         string_drop(ident);
         return init_token(TK_KW_LET,
             NULL,
             new_location(line, col, start, lexer->i));
-    } else if (string_eq(ident, "if")) {
+    } else if (string_eq_str(ident, "if")) {
         string_drop(ident);
         return init_token(TK_KW_IF,
             NULL,
             new_location(line, col, start, lexer->i));
-    } else if (string_eq(ident, "func")) {
+    } else if (string_eq_str(ident, "func")) {
         string_drop(ident);
         return init_token(TK_KW_FUNC,
             NULL,

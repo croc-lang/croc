@@ -103,8 +103,15 @@ inline char string_get(string_t* self, size_t index) {
 /**
  * compare the content of self with the str
  */
-bool string_eq(string_t* self, char* str) {
+bool string_eq_str(string_t* self, char* str) {
     return strcmp(self->data, str) == 0;
+}
+
+/**
+ * compare the content of self with another string_t
+ */
+bool string_eq(string_t* self, string_t* str) {
+    return strcmp(self->data, str->data) == 0;
 }
 
 /*
