@@ -26,7 +26,11 @@ typedef struct Context {
     // vector_t* warnings;
 } context_t;
 
-ctx_error_t* new_error(ctx_error_kind_t kind, string_t* msg, location_t* location);
+ctx_error_t* new_error(
+    ctx_error_kind_t kind,
+    string_t* msg,
+    location_t* location
+);
 void error_drop(ctx_error_t* self);
 
 context_t* new_context();
