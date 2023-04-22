@@ -9,6 +9,7 @@ typedef enum ErrorKind {
     CTX_ERR_FILE_NOT_FOUND,
     CTX_ERR_UNTERMINATED_STR,
     CTX_ERR_INVALID_SLICE,
+    CTX_ERR_INVALID_SYNTAX,
     CTX_ERR_INVALID_CHAR,
 
     // parser
