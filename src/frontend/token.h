@@ -1,6 +1,7 @@
 #ifndef FRONTEND_TOKEN_H
 #define FRONTEND_TOKEN_H
 #include <stdio.h>
+#include <stdbool.h>
 #include "../string_utils.h"
 #include "../location.h"
 
@@ -56,6 +57,7 @@ typedef struct Token {
     location_t* location;
 } token_t;
 
-token_t init_token(token_kind_t kind, string_t* value, location_t* location);
+token_t* new_token(token_kind_t kind, string_t* value, location_t* location);
+bool token_check(token_t* self, token_t* other);
 void token_drop(token_t* self);
 #endif
