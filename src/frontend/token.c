@@ -1,12 +1,20 @@
 #include <stdlib.h>
 #include "token.h"
 
-token_t init_token(token_kind_t kind, string_t* value, location_t* location) {
-    token_t t = {.kind = kind, .value = value, .location = location};
+token_t* new_token(token_kind_t kind, string_t* value, location_t* location) {
+    token_t* t = malloc(sizeof(token_t));
+    t->kind = kind;
+    t->value = value;
+    t->location = location;
     return t;
+}
+
+bool token_check(token_t* self, token_t* other) {
+    return self->kind == other->kind && string_eq(self->value, other->value);
 }
 
 void token_drop(token_t* self) {
     location_drop(self->location);
     free(self->value);
+    free(self);
 }

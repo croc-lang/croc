@@ -6,7 +6,7 @@
 
 #define INC_AND_RETURN(lexer, kind) { \
     lexer_forward(lexer); \
-    return init_token(kind, NULL, new_location(line, col, start, lexer->i)); \
+    return new_token(kind, NULL, new_location(line, col, start, lexer->i)); \
 }
 
 lexer_t* from_file_lexer(char* path) {
@@ -75,7 +75,7 @@ static size_t lexer_backward(lexer_t* self) {
     return --self->i;
 }
 
-static token_t lexing_ident(lexer_t* lexer, size_t start) {
+static token_t* lexing_ident(lexer_t* lexer, size_t start) {
     size_t line, col = (lexer->line, lexer->col);
     while (isalnum(string_get(lexer->src, lexer_forward(lexer))));
 
@@ -83,25 +83,25 @@ static token_t lexing_ident(lexer_t* lexer, size_t start) {
 
     if (string_eq_str(ident, "let")) {
         string_drop(ident);
-        return init_token(TK_KW_LET,
+        return new_token(TK_KW_LET,
             NULL,
             new_location(line, col, start, lexer->i));
     } else if (string_eq_str(ident, "if")) {
         string_drop(ident);
-        return init_token(TK_KW_IF,
+        return new_token(TK_KW_IF,
             NULL,
             new_location(line, col, start, lexer->i));
     } else if (string_eq_str(ident, "func")) {
         string_drop(ident);
-        return init_token(TK_KW_FUNC,
+        return new_token(TK_KW_FUNC,
             NULL,
             new_location(line, col, start, lexer->i));
-    } else return init_token(TK_IDENT,
+    } else return new_token(TK_IDENT,
         ident,
         new_location(line, col, start, lexer->i));
 }
 
-static token_t lexing_number(lexer_t* lexer, size_t start) {
+static token_t* lexing_number(lexer_t* lexer, size_t start) {
     size_t line, col = (lexer->line, lexer->col);
     while (isdigit(string_get(lexer->src, lexer_forward(lexer))));
 
@@ -109,17 +109,17 @@ static token_t lexing_number(lexer_t* lexer, size_t start) {
     if (c > 0 && c == '.' && isdigit(string_get(lexer->src, lexer->i))) {
         while (isdigit(string_get(lexer->src, lexer_forward(lexer))));
 
-        return init_token(TK_FLOAT,
+        return new_token(TK_FLOAT,
             string_slice(lexer->src, start, lexer_backward(lexer)),
             new_location(line, col, start, lexer->i));
     }
 
-    return init_token(TK_INT,
+    return new_token(TK_INT,
         string_slice(lexer->src, start, lexer_backward(lexer)),
         new_location(line, col, start, lexer->i));
 }
 
-static token_t lexing_string(lexer_t* lexer, size_t start) {
+static token_t* lexing_string(lexer_t* lexer, size_t start) {
     size_t line, col = (lexer->line, lexer->col);
     string_t* str = new_string("");
     char c;
@@ -158,10 +158,10 @@ static token_t lexing_string(lexer_t* lexer, size_t start) {
         else string_push_char(str, c);
     }
 
-    return init_token(TK_STRING, str, new_location(line, col, start, lexer->i));
+    return new_token(TK_STRING, str, new_location(line, col, start, lexer->i));
 }
 
-token_t lexer_next_token(lexer_t* self) {
+token_t* lexer_next_token(lexer_t* self) {
     size_t line, col, start;
     char next_c, c;
     while ((c = string_get(self->src, lexer_forward(self))) > 0) {
@@ -190,16 +190,16 @@ token_t lexer_next_token(lexer_t* self) {
         } else if (next_c == '=') {
             lexer_forward(self);
             switch (c) {
-            case '=': return init_token(TK_CMP_EQ,
+            case '=': return new_token(TK_CMP_EQ,
                 NULL,
                 new_location(line, col, start, self->i));
-            case '!': return init_token(TK_CMP_NE,
+            case '!': return new_token(TK_CMP_NE,
                 NULL,
                 new_location(line, col, start, self->i));
-            case '>': return init_token(TK_CMP_GE,
+            case '>': return new_token(TK_CMP_GE,
                 NULL,
                 new_location(line, col, start, self->i));
-            case '<': return init_token(TK_CMP_LE,
+            case '<': return new_token(TK_CMP_LE,
                 NULL,
                 new_location(line, col, start, self->i));
             // TODO(hana) += -= ...
@@ -216,67 +216,67 @@ token_t lexer_next_token(lexer_t* self) {
         else if (c == '-' && next_c == '-') INC_AND_RETURN(self, TK_DECREMENT)
         else if (c == '+' && next_c == '+') INC_AND_RETURN(self, TK_INCREMENT)
         else if (c == '-' && next_c == '>') INC_AND_RETURN(self, TK_ARROW)
-        else if (c == '+') return init_token(TK_PLUS,
+        else if (c == '+') return new_token(TK_PLUS,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '-') return init_token(TK_MINUS,
+        else if (c == '-') return new_token(TK_MINUS,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '*') return init_token(TK_STAR,
+        else if (c == '*') return new_token(TK_STAR,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '/') return init_token(TK_SLASH,
+        else if (c == '/') return new_token(TK_SLASH,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '%') return init_token(TK_PERCENT,
+        else if (c == '%') return new_token(TK_PERCENT,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '&') return init_token(TK_BIN_AND,
+        else if (c == '&') return new_token(TK_BIN_AND,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '|') return init_token(TK_BIN_OR,
+        else if (c == '|') return new_token(TK_BIN_OR,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '^') return init_token(TK_BIN_XOR,
+        else if (c == '^') return new_token(TK_BIN_XOR,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '=') return init_token(TK_EQ,
+        else if (c == '=') return new_token(TK_EQ,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '!') return init_token(TK_BANG,
+        else if (c == '!') return new_token(TK_BANG,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '~') return init_token(TK_TILDE,
+        else if (c == '~') return new_token(TK_TILDE,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '<') return init_token(TK_CMP_LT,
+        else if (c == '<') return new_token(TK_CMP_LT,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '>') return init_token(TK_CMP_GT,
+        else if (c == '>') return new_token(TK_CMP_GT,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == ';') return init_token(TK_SEMICOLON,
+        else if (c == ';') return new_token(TK_SEMICOLON,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == ',') return init_token(TK_COMMA,
+        else if (c == ',') return new_token(TK_COMMA,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '(') return init_token(TK_LPAREN,
+        else if (c == '(') return new_token(TK_LPAREN,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == ')') return init_token(TK_RPAREN,
+        else if (c == ')') return new_token(TK_RPAREN,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '{') return init_token(TK_LBRACE,
+        else if (c == '{') return new_token(TK_LBRACE,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '}') return init_token(TK_RBRACE,
+        else if (c == '}') return new_token(TK_RBRACE,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == '[') return init_token(TK_LBRACKET,
+        else if (c == '[') return new_token(TK_LBRACKET,
             NULL,
             new_location(line, col, start, self->i));
-        else if (c == ']') return init_token(TK_RBRACKET,
+        else if (c == ']') return new_token(TK_RBRACKET,
             NULL,
             new_location(line, col, start, self->i));
         else {
@@ -287,7 +287,7 @@ token_t lexer_next_token(lexer_t* self) {
         }
     }
 
-    return init_token(TK_EOF,
+    return new_token(TK_EOF,
         NULL,
         new_location(line, col, self->src->len, self->src->len));
 }

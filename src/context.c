@@ -1,7 +1,11 @@
 #include <stdlib.h>
 #include "context.h"
 
-ctx_error_t* new_error(ctx_error_kind_t kind, string_t* msg, location_t* location) {
+ctx_error_t* new_error(
+    ctx_error_kind_t kind,
+    string_t* msg,
+    location_t* location
+) {
     ctx_error_t* error = malloc(sizeof(ctx_error_t));
     error->kind = kind;
     error->msg = msg;
