@@ -102,19 +102,45 @@ static token_t* lexing_ident(lexer_t* lexer, size_t start) {
 }
 
 static token_t* lexing_number(lexer_t* lexer, size_t start) {
-    size_t line, col = (lexer->line, lexer->col);
-    while (isdigit(string_get(lexer->src, lexer_forward(lexer))));
-
-    char c = string_get(lexer->src, lexer->i - 1);
-    if (c > 0 && c == '.' && isdigit(string_get(lexer->src, lexer->i))) {
-        while (isdigit(string_get(lexer->src, lexer_forward(lexer))));
-
-        return new_token(TK_FLOAT,
-            string_slice(lexer->src, start, lexer_backward(lexer)),
-            new_location(line, col, start, lexer->i));
+    size_t line, col, first_occ = (lexer->line, lexer->col, 0);
+    token_kind_t kind = TK_INT;
+    bool error = false;
+    string_t* slice;
+    char c;
+    while ((c = string_get(lexer->src, lexer_forward(lexer)), isalnum(c))) {
+        if (isalpha(c) && !error) {
+            error = true;
+            first_occ = lexer->i - 1;
+        }
     }
 
-    return new_token(TK_INT,
+    c = string_get(lexer->src, lexer->i - 1);
+    if (c > 0 && c == '.' && isdigit(string_get(lexer->src, lexer->i))) {
+        kind = TK_FLOAT;
+        while ((c = string_get(lexer->src, lexer_forward(lexer)), isalnum(c))) {
+            if (isalpha(c) && !error) {
+                error = true;
+                first_occ = lexer->i - 1;
+            }
+        }
+    }
+
+    if (error) {
+        slice = string_slice(lexer->src,
+            start,
+            lexer_backward(lexer));
+        context_add_error(lexer->context,
+            new_error(CTX_ERR_INVALID_SYNTAX,
+                format_string("`%s` is invalid"
+                    ", we didn't expect to have '%c' in the number"
+                    ", try rewriting it.",
+                    slice->data,
+                    string_get(lexer->src, first_occ)),
+                new_location(line, col, start, lexer->i)));
+        string_drop(slice);
+    }
+
+    return new_token(kind,
         string_slice(lexer->src, start, lexer_backward(lexer)),
         new_location(line, col, start, lexer->i));
 }
@@ -157,6 +183,11 @@ static token_t* lexing_string(lexer_t* lexer, size_t start) {
         } else if (c == '"') break;
         else string_push_char(str, c);
     }
+
+    if (c != '"') context_add_error(lexer->context,
+        new_error(CTX_ERR_UNTERMINATED_STR,
+            new_string("not ended string"),
+            new_location(line, col, start, lexer->i)));
 
     return new_token(TK_STRING, str, new_location(line, col, start, lexer->i));
 }
