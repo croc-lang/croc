@@ -9,6 +9,11 @@ token_t* new_token(token_kind_t kind, string_t* value, location_t* location) {
     return t;
 }
 
+string_t* token_get_value(token_t* self, char* or_default) {
+    if (self->value == NULL) return new_string(or_default);
+    return self->value;
+}
+
 bool token_check(token_t* self, token_t* other) {
     return self->kind == other->kind && string_eq(self->value, other->value);
 }

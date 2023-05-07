@@ -58,6 +58,7 @@ typedef struct Token {
 } token_t;
 
 token_t* new_token(token_kind_t kind, string_t* value, location_t* location);
+string_t* token_get_value(token_t* self, char* or_default);
 bool token_check(token_t* self, token_t* other);
 void token_drop(token_t* self);
 #endif
