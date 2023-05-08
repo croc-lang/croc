@@ -2,6 +2,7 @@
 #define FRONTEND_EXPR_H
 #include "../string_utils.h"
 #include "token.h"
+#include "type.h"
 
 typedef struct Expr expr_t;
 
@@ -51,7 +52,7 @@ typedef union ExprValue {
 } expr_value_t;
 
 typedef struct ArgExpr {
-    expr_t* type;
+    type_t* type;
     string_t* name;
 } arg_expr_t;
 
@@ -63,7 +64,7 @@ typedef struct Expr {
 unary_expr_t* new_unary_expr(expr_t* value);
 void unary_expr_drop(unary_expr_t* self);
 
-arg_expr_t* new_arg_expr(expr_t* type, string_t* name);
+arg_expr_t* new_arg_expr(type_t* type, string_t* name);
 void arg_expr_drop(arg_expr_t* self);
 
 binary_expr_t* new_binary_expr(expr_t* left, expr_t* right);

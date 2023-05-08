@@ -25,7 +25,7 @@ void binary_expr_drop(binary_expr_t* self) {
     free(self);
 }
 
-arg_expr_t* new_arg_expr(expr_t* type, string_t* name) {
+arg_expr_t* new_arg_expr(type_t* type, string_t* name) {
     arg_expr_t* arg = malloc(sizeof(arg_expr_t));
     arg->type = type;
     arg->name = name;
@@ -34,7 +34,7 @@ arg_expr_t* new_arg_expr(expr_t* type, string_t* name) {
 
 void arg_expr_drop(arg_expr_t* self) {
     string_drop(self->name);
-    expr_drop(self->type);
+    type_drop(self->type);
     free(self);
 }
 

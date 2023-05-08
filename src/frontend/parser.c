@@ -34,7 +34,7 @@ inline static bool parser_check(parser_t* self, token_kind_t kind) {
 inline static bool parser_checks(parser_t* self, size_t size, ...) {
     va_list args;
     va_start(args, size);
-    for (int i = 0; i < size; ++i) {
+    for (size_t i = 0; i < size; ++i) {
         if (parser_check(self, va_arg(args, token_kind_t))) return true;
     }
     va_end(args);
@@ -53,8 +53,21 @@ inline static token_t* parser_eat(parser_t* self, token_kind_t kind) {
     return prev;
 }
 
+static path_type_t* parse_type_path(parser_t* self) {
+    vector_t* segments = new_vector();
+
+    do {
+        if (parser_check(self, TK_DB_COLON))
+            parser_eat(self, TK_DB_COLON);
+        string_t* name = token_get_value(parser_eat(self, TK_IDENT), "");
+        vector_push(segments, name);
+    } while (parser_check(self, TK_DB_COLON));
+
+    return new_path_type(segments);
+}
+
 static arg_expr_t* parse_arg(parser_t* self) {
-    expr_t* type = parse_expr(self);
+    type_t* type = parse_type(self);
     string_t* name = token_get_value(parser_eat(self, TK_IDENT), "");
 
     return new_arg_expr(type, name);
@@ -175,6 +188,56 @@ static stmt_t* parse_func(parser_t* self) {
 
     stmt_value_t value = {.func = new_func_stmt(name, type, args, body)};
     return new_stmt(STMT_FUNC_DEFINITION, value);
+}
+
+type_t* parse_type(parser_t* self) {
+    type_t* type;
+
+    type_value_t value;
+    type_kind_t kind;
+    expr_t* size;
+    vector_t* generics;
+    if (parser_check(self, TK_EOF)) return NULL;
+
+    path_type_t* path = parse_type_path(self);
+    if (parser_check(self, TK_CMP_LT)) {
+        parser_eat(self, TK_CMP_LT);
+        while (!parser_check(self, TK_CMP_GT)) {
+            vector_push(generics, parse_type(self));
+            if (!parser_check(self, TK_COMMA)) break;
+            parser_eat(self, TK_COMMA);
+        }
+        parser_eat(self, TK_CMP_GT);
+
+        value.generic = new_generic_type(path, generics);
+        kind = TY_GENERIC;
+    } else {
+        value.path = path;
+        kind = TY_PATH;
+    }
+    type = new_type(kind, value);
+
+    while (parser_checks(self, TK_STAR, TK_BIN_AND, TK_LBRACKET)) {
+        token_kind_t token_kind = parser_advence(self)->kind;
+        switch (token_kind) {
+        case TK_STAR:
+            value.type = type;
+            kind = TY_POINTER;
+            break;
+        case TK_BIN_AND:
+            value.type = type;
+            kind = TY_REFERENCE;
+            break;
+        case TK_LBRACKET:
+            parser_eat(self, TK_RBRACKET);
+            value.type = type;
+            kind = TY_SLICE;
+            break;
+        }
+        type = new_type(kind, value);
+    }
+
+    return type;
 }
 
 expr_t* parse_expr(parser_t* self) {
