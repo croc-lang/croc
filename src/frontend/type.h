@@ -2,7 +2,8 @@
 #define FRONTEND_TYPE_H
 #include "../string_utils.h"
 #include "../vector.h"
-#include "expr.h"
+
+typedef struct Type type_t;
 
 typedef struct PathType {
     /*string_t*/vector_t* segments;
@@ -13,14 +14,15 @@ typedef struct GenericType {
     /*type_t*/vector_t* generics;
 } generic_type_t;
 
-typedef struct ArrayType {
-    path_type_t* path;
-    expr_t* size;
-} array_type_t;
+// TODO(Hana): Work on the array type `example[2]`
+// typedef struct ArrayType {
+//     type_t* type;
+//     expr_t* size;
+// } array_type_t;
 
 typedef enum TypeKind {
     TY_GENERIC,
-    TY_ARRAY,
+    // TY_ARRAY,
     TY_POINTER,
     TY_REFERENCE,
     TY_SLICE,
@@ -33,11 +35,14 @@ typedef union TypeValue {
     // TY_GENERIC
     generic_type_t* generic;
 
-    // TY_POINTER, TY_REFERENCE, TY_SLICE, TY_PATH
+    // TY_PATH
     path_type_t* path;
 
     // TY_ARRAY
-    array_type_t* array;
+    // array_type_t* array;
+
+    // TY_POINTER, TY_REFERENCE, TY_SLICE
+    type_t* type;
 } type_value_t;
 
 typedef struct Type {
@@ -54,8 +59,8 @@ generic_type_t* new_generic_type(
 );
 void generic_type_drop(generic_type_t* self);
 
-array_type_t* new_array_type(path_type_t* path, expr_t* size);
-void array_type_drop(array_type_t* self);
+// array_type_t* new_array_type(type_t* type, expr_t* size);
+// void array_type_drop(array_type_t* self);
 
 type_t* new_type(type_kind_t kind, type_value_t value);
 void type_drop(type_t* self);
