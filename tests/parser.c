@@ -15,9 +15,9 @@ Test(parser, int) {
 }
 
 Test(parser, unary) {
-    const int size = 7;
+    const int const size = 7;
 
-    expr_kind_t unaries[size] = {
+    expr_kind_t unaries[] = {
         EX_UNA_INCR,
         EX_UNA_DECR,
         EX_UNA_NEG,
