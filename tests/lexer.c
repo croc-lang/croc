@@ -90,7 +90,7 @@ Test(lexer, keywords) {
     const int size = 3;
 
     lexer_t* lexer = new_lexer("test.cr", "let if func");
-    token_kind_t keywords[size] = {TK_KW_LET, TK_KW_IF, TK_KW_FUNC};
+    token_kind_t keywords[] = {TK_KW_LET, TK_KW_IF, TK_KW_FUNC};
 
     for (size_t i = 0; i < size; i++) {
         token_t* actual = lexer_next_token(lexer);
@@ -111,7 +111,7 @@ Test(lexer, operators) {
                                           "+ - * / % | & ^ ! ~ ++ --"
                                           "= == != < > <= >= << >> || &&");
 
-    token_kind_t keywords[size] = {
+    token_kind_t keywords[] = {
         TK_LPAREN,
         TK_RPAREN,
         TK_LBRACE,
@@ -164,7 +164,7 @@ Test(lexer, token_proximity) {
 
     lexer_t* lexer = new_lexer("test.cr", "test()");
 
-    token_kind_t keywords[size] = {
+    token_kind_t keywords[] = {
         TK_IDENT,
         TK_LPAREN,
         TK_RPAREN,
