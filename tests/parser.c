@@ -102,3 +102,48 @@ Test(parser, orders_of_precedence) {
     stmt_drop(stmt);
     parser_drop(parser);
 }
+
+Test(parser, var_declaration) {
+    lexer_t* lexer = new_lexer("test.cr", "let a = 8;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->constant, false);
+    cr_assert_null(stmt->value.var->type);
+
+    cr_assert_eq(stmt->value.var->left->kind, EX_IDENT);
+    cr_assert_str_eq(stmt->value.var->left->value.value->data, "a");
+
+    cr_assert_eq(stmt->value.var->right->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(stmt->value.var->right->value.value->data, "8");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, const_declaration) {
+    lexer_t* lexer = new_lexer("test.cr", "const int a = 8;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->constant, true);
+
+    cr_assert_eq(stmt->value.var->type->kind, TY_PATH);
+    string_t* type_value = vector_get(
+        stmt->value.var->type->value.path->segments,
+        0);
+    cr_assert_str_eq(type_value->data, "int");
+
+    cr_assert_eq(stmt->value.var->left->kind, EX_IDENT);
+    cr_assert_str_eq(stmt->value.var->left->value.value->data, "a");
+
+    cr_assert_eq(stmt->value.var->right->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(stmt->value.var->right->value.value->data, "8");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}

@@ -3,11 +3,13 @@
 
 var_stmt_t* new_var_stmt(
     bool constant,
-    stmt_t* left,
-    stmt_t* right
+    type_t* type,
+    expr_t* left,
+    expr_t* right
 ) {
     var_stmt_t* stmt = malloc(sizeof(var_stmt_t));
     stmt->constant = constant;
+    stmt->type = type;
     stmt->left = left;
     stmt->right = right;
     return stmt;
