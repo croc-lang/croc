@@ -10,7 +10,7 @@ typedef struct Stmt stmt_t;
 
 typedef struct VarStmt {
     bool constant;
-    // if the type is NULL and the constant at 0, the type is infer 
+    // if the type is NULL and the constant at 0, the type is infer
     type_t* type;
     expr_t* left;
     expr_t* right;

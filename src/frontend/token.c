@@ -20,6 +20,7 @@ bool token_check(token_t* self, token_t* other) {
 
 void token_drop(token_t* self) {
     location_drop(self->location);
-    free(self->value);
+    if (self->value)
+        string_drop(self->value);
     free(self);
 }
