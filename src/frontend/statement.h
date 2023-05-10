@@ -2,6 +2,7 @@
 #define FRONTEND_STATEMENT_H
 #include <stdbool.h>
 #include "expr.h"
+#include "type.h"
 #include "../string_utils.h"
 #include "../vector.h"
 
@@ -9,8 +10,10 @@ typedef struct Stmt stmt_t;
 
 typedef struct VarStmt {
     bool constant;
-    stmt_t* left;
-    stmt_t* right;
+    // if the type is NULL and the constant at 0, the type is infer 
+    type_t* type;
+    expr_t* left;
+    expr_t* right;
 } var_stmt_t;
 
 typedef struct FuncStmt {
@@ -50,8 +53,9 @@ typedef struct Stmt {
 
 var_stmt_t* new_var_stmt(
     bool constant,
-    stmt_t* left,
-    stmt_t* right
+    type_t* type,
+    expr_t* left,
+    expr_t* right
 );
 void var_stmt_drop(var_stmt_t* self);
 

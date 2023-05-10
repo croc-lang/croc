@@ -165,7 +165,7 @@ PARSE_OP_EXPR(
 
 static stmt_t* parse_func(parser_t* self) {
     parser_eat(self, TK_KW_FUNC);  // skip the func kw
-    string_t* name = token_get_value(parser_eat(self, TK_IDENT), "");;
+    string_t* name = token_get_value(parser_eat(self, TK_IDENT), "");
 
     vector_t* args = new_vector();
     parser_eat(self, TK_RPAREN);
@@ -189,6 +189,32 @@ static stmt_t* parse_func(parser_t* self) {
 
     stmt_value_t value = {.func = new_func_stmt(name, type, args, body)};
     return new_stmt(STMT_FUNC_DEFINITION, value);
+}
+
+static stmt_t* parse_var(parser_t* self) {
+    parser_eat(self, TK_KW_LET);
+    // type_t* type = parse_type(self);
+    expr_t* id = parse_expr(self);
+
+    parser_eat(self, TK_EQ);
+
+    expr_t* init = parse_expr(self);
+
+    stmt_value_t value = {.var = new_var_stmt(false, NULL, id, init)};
+    return new_stmt(STMT_VAR_DECLARATION, value);
+}
+
+static stmt_t* parse_const(parser_t* self) {
+    parser_eat(self, TK_KW_CONST);
+    type_t* type = parse_type(self);
+    expr_t* id = parse_expr(self);
+
+    parser_eat(self, TK_EQ);
+
+    expr_t* init = parse_expr(self);
+
+    stmt_value_t value = {.var = new_var_stmt(true, type, id, init)};
+    return new_stmt(STMT_VAR_DECLARATION, value);
 }
 
 type_t* parse_type(parser_t* self) {
@@ -253,6 +279,8 @@ stmt_t* parser_next(parser_t* self) {
     switch (self->current->kind) {
     case TK_EOF: return NULL;
     case TK_KW_FUNC: return parse_func(self);
+    case TK_KW_LET: return parse_var(self);
+    case TK_KW_CONST: return parse_const(self);
     default:
         value.expr = parse_expr(self);
         parser_eat(self, TK_SEMICOLON);
