@@ -27,6 +27,7 @@ lexer_t* from_file_lexer(char* path) {
         return NULL;
 
     fread(src->data, len, 1, file);
+    src->len = len;
 
     lexer->context = new_context();
     lexer->filename = path;
