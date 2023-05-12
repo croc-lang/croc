@@ -229,6 +229,25 @@ static stmt_t* parse_const(parser_t* self) {
     return new_stmt(STMT_VAR_DECLARATION, value);
 }
 
+static stmt_t* parse_if(parser_t* self) {
+    parser_eat(self, TK_KW_IF);
+    parser_eat(self, TK_LPAREN);
+    expr_t* condition = parse_expr(self);
+    parser_eat(self, TK_RPAREN);
+
+    vector_t* body = new_vector();
+    if (parser_check(self, TK_LBRACE)) {
+        parser_eat(self, TK_LBRACE);
+        while (!parser_check(self, TK_RBRACE)) {
+            vector_push(body, parser_next(self));
+        }
+        parser_eat(self, TK_RBRACE);
+    } else vector_push(body, parser_next(self));
+
+    stmt_value_t value = {.if_stmt = new_if_stmt(condition, body)};
+    return new_stmt(STMT_IF, value);
+}
+
 type_t* parse_type(parser_t* self, string_t* first_segment) {
     type_t* type;
 
@@ -293,6 +312,7 @@ stmt_t* parser_next(parser_t* self) {
     case TK_KW_FUNC: return parse_func(self);
     case TK_KW_LET: return parse_var(self, NULL);
     case TK_KW_CONST: return parse_const(self);
+    case TK_KW_IF: return parse_if(self);
     default:
         value.expr = parse_expr(self);
         if (parser_check(self, TK_SEMICOLON)) {
