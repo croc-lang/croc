@@ -46,7 +46,9 @@ inline static token_t* parser_eat(parser_t* self, token_kind_t kind) {
     if (!parser_check(self, kind)) {
         context_add_error(self->context,
             new_error(CTX_ERR_INVALID_TOKEN,
-                format_string("`%s` was invalid", self->current->value->data),
+                format_string(
+                    "`%s` was invalid",
+                    token_get_value(self->current, "")),
                 self->current->location));
     }
     token_t* prev = self->current;
@@ -54,13 +56,10 @@ inline static token_t* parser_eat(parser_t* self, token_kind_t kind) {
     return prev;
 }
 
-static path_type_t* parse_type_path(parser_t* self, string_t* first_segment) {
+static path_type_t* parse_type_path(parser_t* self) {
     vector_t* segments = new_vector();
 
-    if (first_segment == NULL)
-        first_segment = token_get_value(parser_eat(self, TK_IDENT), "");
-
-    vector_push(segments, first_segment);
+    vector_push(segments, token_get_value(parser_eat(self, TK_IDENT), ""));
 
     while (parser_check(self, TK_DB_COLON)) {
         parser_eat(self, TK_DB_COLON);
@@ -72,7 +71,7 @@ static path_type_t* parse_type_path(parser_t* self, string_t* first_segment) {
 }
 
 static arg_expr_t* parse_arg(parser_t* self) {
-    type_t* type = parse_type(self, NULL);
+    type_t* type = parse_type(self);
     string_t* name = token_get_value(parser_eat(self, TK_IDENT), "");
 
     return new_arg_expr(type, name);
@@ -195,12 +194,10 @@ static stmt_t* parse_func(parser_t* self) {
     return new_stmt(STMT_FUNC_DEFINITION, value);
 }
 
-static stmt_t* parse_var(parser_t* self, string_t* first_segment) {
+static stmt_t* parse_var(parser_t* self) {
     type_t* type = NULL;
-    if (first_segment == NULL && parser_check(self, TK_KW_LET))
-        parser_eat(self, TK_KW_LET);
-    else
-        type = parse_type(self, first_segment);
+    if (parser_check(self, TK_KW_LET)) parser_eat(self, TK_KW_LET);
+    else type = parse_type(self);
 
     expr_t* id = parse_expr(self);
 
@@ -215,10 +212,8 @@ static stmt_t* parse_var(parser_t* self, string_t* first_segment) {
 static stmt_t* parse_const(parser_t* self) {
     type_t* type = NULL;
     parser_eat(self, TK_KW_CONST);
-    if (parser_check(self, TK_KW_LET))
-        parser_eat(self, TK_KW_LET);
-    else
-        type = parse_type(self, NULL);
+    if (parser_check(self, TK_KW_LET)) parser_eat(self, TK_KW_LET);
+    else type = parse_type(self);
     expr_t* id = parse_expr(self);
 
     parser_eat(self, TK_EQ);
@@ -248,20 +243,19 @@ static stmt_t* parse_if(parser_t* self) {
     return new_stmt(STMT_IF, value);
 }
 
-type_t* parse_type(parser_t* self, string_t* first_segment) {
+type_t* parse_type(parser_t* self) {
     type_t* type;
 
     type_value_t value;
     type_kind_t kind;
     expr_t* size = NULL;
     vector_t* generics = NULL;
-    if (parser_check(self, TK_EOF)) return NULL;
 
-    path_type_t* path = parse_type_path(self, first_segment);
+    path_type_t* path = parse_type_path(self);
     if (parser_check(self, TK_CMP_LT)) {
         parser_eat(self, TK_CMP_LT);
         while (!parser_check(self, TK_CMP_GT)) {
-            vector_push(generics, parse_type(self, NULL));
+            vector_push(generics, parse_type(self));
             if (!parser_check(self, TK_COMMA)) break;
             parser_eat(self, TK_COMMA);
         }
@@ -299,29 +293,44 @@ type_t* parse_type(parser_t* self, string_t* first_segment) {
 }
 
 expr_t* parse_expr(parser_t* self) {
-    if (parser_check(self, TK_EOF)) return NULL;
-
     return parse_additive_expr(self);
 }
 
 stmt_t* parser_next(parser_t* self) {
-    stmt_value_t value;
+    size_t errors_len = self->context->errors->len;
+    location_t* start_position;
+    size_t number_errors;
+    stmt_t* stmt = NULL;
 
     switch (self->current->kind) {
     case TK_EOF: return NULL;
     case TK_KW_FUNC: return parse_func(self);
-    case TK_KW_LET: return parse_var(self, NULL);
-    case TK_KW_CONST: return parse_const(self);
+    case TK_KW_LET:
+        stmt = parse_var(self);
+        parser_eat(self, TK_SEMICOLON);
+        return stmt;
+    case TK_KW_CONST:
+        stmt = parse_const(self);
+        parser_eat(self, TK_SEMICOLON);
+        return stmt;
     case TK_KW_IF: return parse_if(self);
     default:
-        value.expr = parse_expr(self);
-        if (parser_check(self, TK_SEMICOLON)) {
-            parser_eat(self, TK_SEMICOLON);
-            return new_stmt(STMT_EXPR, value);
-        }
+        start_position = self->current->location;
+        stmt = parse_var(self);
+        number_errors = self->context->errors->len - errors_len;
 
-        return parse_var(self, value.expr->value.value);
+        if (number_errors) {
+            context_forget_errors(self->context, number_errors);
+            lexer_goto_location(self->lexer, start_position);
+            parser_advence(self);
+            stmt_drop(stmt);
+            stmt_value_t value = {.expr = parse_expr(self)};
+            stmt = new_stmt(STMT_EXPR, value);
+        }
+        parser_eat(self, TK_SEMICOLON);
+        return stmt;
     }
+
 }
 
 void parser_drop(parser_t* self) {

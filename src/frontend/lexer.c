@@ -329,6 +329,12 @@ token_t* lexer_next_token(lexer_t* self) {
         new_location(line, col, self->src->len, self->src->len));
 }
 
+void lexer_goto_location(lexer_t* self, location_t* location) {
+    self->col = location->col;
+    self->line = location->line;
+    self->i = location->start;
+}
+
 void lexer_drop(lexer_t* self) {
     string_drop(self->src);
     free(self);

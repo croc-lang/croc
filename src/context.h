@@ -36,5 +36,6 @@ void error_drop(ctx_error_t* self);
 
 context_t* new_context();
 bool context_add_error(context_t* self, ctx_error_t* error);
+void context_forget_errors(context_t* self, int number);
 void context_drop(context_t* self);
 #endif

@@ -18,5 +18,6 @@ typedef struct Lexer {
 lexer_t* from_file_lexer(char* path);
 lexer_t* new_lexer(char* path, char* src);
 token_t* lexer_next_token(lexer_t* self);
+void lexer_goto_location(lexer_t* self, location_t* location);
 void lexer_drop(lexer_t* self);
 #endif
