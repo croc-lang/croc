@@ -103,6 +103,25 @@ Test(parser, orders_of_precedence) {
     parser_drop(parser);
 }
 
+Test(parser, if_only) {
+    lexer_t* lexer = new_lexer("test.cr", "if (a) b;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_IF);
+    cr_assert_eq(stmt->value.if_stmt->condition->kind, EX_IDENT);
+    cr_assert_str_eq(stmt->value.if_stmt->condition->value.value->data, "a");
+
+    stmt_t* stmt2 = vector_get(stmt->value.if_stmt->body, 0);
+    cr_assert_eq(stmt2->kind, STMT_EXPR);
+    cr_assert_eq(stmt2->value.expr->kind, EX_IDENT);
+    cr_assert_str_eq(stmt2->value.expr->value.value->data, "b");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
 Test(parser, var_declaration) {
     lexer_t* lexer = new_lexer("test.cr", "let a = 8;");
     parser_t* parser = new_parser(lexer);

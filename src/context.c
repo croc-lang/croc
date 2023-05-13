@@ -27,6 +27,12 @@ bool context_add_error(context_t* self, ctx_error_t* error) {
     return vector_push(self->errors, error) != NULL;
 }
 
+void context_forget_errors(context_t* self, int number) {
+    for (int i = 0; i < number; i++) {
+        vector_pop(self->errors);
+    }
+}
+
 void context_drop(context_t* self) {
     vector_deeply_drop(self->errors, error_drop);
     free(self);

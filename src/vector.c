@@ -46,6 +46,14 @@ inline static void** vector_resize(vector_t* self, size_t len) {
     return data;
 }
 
+void* vector_set(vector_t* self, size_t index, void* element) {
+    if (index >= self->len) return NULL;
+
+    void* last_value = vector_get(self, index);
+    self->data[index] = element;
+    return last_value;
+}
+
 vector_t* vector_push(vector_t* self, void* element) {
     if (vector_resize(self, self->len + 1)) {
         self->data[self->len - 1] = element;
@@ -53,6 +61,12 @@ vector_t* vector_push(vector_t* self, void* element) {
     }
 
     return NULL;
+}
+
+void* vector_pop(vector_t* self) {
+    void* popped_element = vector_get(self, --self->len);
+    self->data[self->len] = NULL;
+    return popped_element;
 }
 
 void vector_deeply_drop(vector_t* self, void (*dropper)(void*)) {
