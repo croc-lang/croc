@@ -43,13 +43,31 @@ void func_stmt_drop(func_stmt_t* self) {
     free(self);
 }
 
+else_branch_stmt_t* new_else_branch_stmt(
+    /*stmt_t*/vector_t* body,
+    if_stmt_t* if_branch
+) {
+    else_branch_stmt_t* stmt = malloc(sizeof(else_branch_stmt_t));
+    stmt->body = body;
+    stmt->if_branch = if_branch;
+    return stmt;
+}
+
+void else_branch_stmt_drop(else_branch_stmt_t* self) {
+    vector_deeply_drop(self->body, stmt_drop);
+    if_stmt_drop(self->if_branch);
+    free(self);
+}
+
 if_stmt_t* new_if_stmt(
     expr_t* condition,
-    /*stmt_t*/vector_t* body
+    /*stmt_t*/vector_t* body,
+    else_branch_stmt_t* else_branch
 ) {
     if_stmt_t* stmt = malloc(sizeof(if_stmt_t));
     stmt->condition = condition;
     stmt->body = body;
+    stmt->else_branch = else_branch;
     return stmt;
 }
 

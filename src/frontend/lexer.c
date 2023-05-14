@@ -92,6 +92,11 @@ static token_t* lexing_ident(lexer_t* lexer, size_t start) {
         return new_token(TK_KW_IF,
             NULL,
             new_location(line, col, start, lexer->i));
+    } else if (string_eq_str(ident, "else")) {
+        string_drop(ident);
+        return new_token(TK_KW_ELSE,
+            NULL,
+            new_location(line, col, start, lexer->i));
     } else if (string_eq_str(ident, "func")) {
         string_drop(ident);
         return new_token(TK_KW_FUNC,

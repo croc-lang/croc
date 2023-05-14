@@ -7,6 +7,7 @@
 #include "../vector.h"
 
 typedef struct Stmt stmt_t;
+typedef struct IfStmt if_stmt_t;
 
 typedef struct VarStmt {
     bool constant;
@@ -23,9 +24,16 @@ typedef struct FuncStmt {
     /*stmt_t*/vector_t* body;
 } func_stmt_t;
 
+typedef struct ElseBranchStmt {
+    /*stmt_t*/vector_t* body;
+    if_stmt_t* if_branch;
+} else_branch_stmt_t;
+
 typedef struct IfStmt {
     expr_t* condition;
     /*stmt_t*/vector_t* body;
+    // NULL == no else branch
+    else_branch_stmt_t* else_branch;
 } if_stmt_t;
 
 typedef enum StmtKind {
@@ -67,9 +75,16 @@ func_stmt_t* new_func_stmt(
 );
 void func_stmt_drop(func_stmt_t* self);
 
+else_branch_stmt_t* new_else_branch_stmt(
+    /*stmt_t*/vector_t* body,
+    if_stmt_t* if_branch
+);
+void else_branch_stmt_drop(else_branch_stmt_t* self);
+
 if_stmt_t* new_if_stmt(
     expr_t* condition,
-    /*stmt_t*/vector_t* body
+    /*stmt_t*/vector_t* body,
+    else_branch_stmt_t* else_branch
 );
 void if_stmt_drop(if_stmt_t* self);
 
