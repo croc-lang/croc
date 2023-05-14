@@ -8,6 +8,7 @@
 typedef enum TokenKind {
     TK_KW_LET,
     TK_KW_IF,
+    TK_KW_ELSE,
     TK_KW_FUNC,
     TK_KW_CONST,
 

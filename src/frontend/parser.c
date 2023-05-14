@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include "parser.h"
 
+static else_branch_stmt_t* parse_else_branch(parser_t* self);
+static if_stmt_t* parse_if_branch(parser_t* self);
+
 #define PARSE_OP_EXPR(name, calle, size, ...) \
 static expr_t* name(parser_t* self) { \
     expr_t* left = calle(self); \
@@ -224,22 +227,49 @@ static stmt_t* parse_const(parser_t* self) {
     return new_stmt(STMT_VAR_DECLARATION, value);
 }
 
-static stmt_t* parse_if(parser_t* self) {
-    parser_eat(self, TK_KW_IF);
-    parser_eat(self, TK_LPAREN);
-    expr_t* condition = parse_expr(self);
-    parser_eat(self, TK_RPAREN);
+static else_branch_stmt_t* parse_else_branch(parser_t* self) {
+    vector_t* body = NULL;
+    parser_eat(self, TK_KW_ELSE);
 
-    vector_t* body = new_vector();
+    if (parser_check(self, TK_KW_IF))
+        return new_else_branch_stmt(NULL, parse_if_branch(self));
+
+    body = new_vector();
     if (parser_check(self, TK_LBRACE)) {
         parser_eat(self, TK_LBRACE);
-        while (!parser_check(self, TK_RBRACE)) {
+        while (!parser_check(self, TK_RBRACE))
             vector_push(body, parser_next(self));
-        }
         parser_eat(self, TK_RBRACE);
     } else vector_push(body, parser_next(self));
 
-    stmt_value_t value = {.if_stmt = new_if_stmt(condition, body)};
+    return new_else_branch_stmt(body, NULL);
+}
+
+static if_stmt_t* parse_if_branch(parser_t* self) {
+    vector_t* body = new_vector();
+    else_branch_stmt_t* else_branch = NULL;
+    expr_t* condition = NULL;
+
+    parser_eat(self, TK_KW_IF);
+    parser_eat(self, TK_LPAREN);
+    condition = parse_expr(self);
+    parser_eat(self, TK_RPAREN);
+
+    if (parser_check(self, TK_LBRACE)) {
+        parser_eat(self, TK_LBRACE);
+        while (!parser_check(self, TK_RBRACE))
+            vector_push(body, parser_next(self));
+        parser_eat(self, TK_RBRACE);
+    } else vector_push(body, parser_next(self));
+
+    if (parser_check(self, TK_KW_ELSE))
+        else_branch = parse_else_branch(self);
+
+    return new_if_stmt(condition, body, else_branch);
+}
+
+static stmt_t* parse_if(parser_t* self) {
+    stmt_value_t value = {.if_stmt = parse_if_branch(self)};
     return new_stmt(STMT_IF, value);
 }
 
@@ -303,17 +333,23 @@ stmt_t* parser_next(parser_t* self) {
     stmt_t* stmt = NULL;
 
     switch (self->current->kind) {
-    case TK_EOF: return NULL;
-    case TK_KW_FUNC: return parse_func(self);
+    case TK_EOF:
+        stmt = NULL;
+        break;
+    case TK_KW_FUNC:
+        stmt = parse_func(self);
+        break;
     case TK_KW_LET:
         stmt = parse_var(self);
         parser_eat(self, TK_SEMICOLON);
-        return stmt;
+        break;
     case TK_KW_CONST:
         stmt = parse_const(self);
         parser_eat(self, TK_SEMICOLON);
-        return stmt;
-    case TK_KW_IF: return parse_if(self);
+        break;
+    case TK_KW_IF:
+        stmt = parse_if(self);
+        break;
     default:
         start_position = self->current->location;
         stmt = parse_var(self);
@@ -328,9 +364,9 @@ stmt_t* parser_next(parser_t* self) {
             stmt = new_stmt(STMT_EXPR, value);
         }
         parser_eat(self, TK_SEMICOLON);
-        return stmt;
+        break;
     }
-
+    return stmt;
 }
 
 void parser_drop(parser_t* self) {

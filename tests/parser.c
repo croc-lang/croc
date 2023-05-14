@@ -118,6 +118,69 @@ Test(parser, if_only) {
     cr_assert_eq(stmt2->value.expr->kind, EX_IDENT);
     cr_assert_str_eq(stmt2->value.expr->value.value->data, "b");
 
+    cr_assert_null(stmt->value.if_stmt->else_branch);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, if_with_else) {
+    lexer_t* lexer = new_lexer("test.cr", "if (a) b; else c;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_IF);
+    cr_assert_eq(stmt->value.if_stmt->condition->kind, EX_IDENT);
+    cr_assert_str_eq(stmt->value.if_stmt->condition->value.value->data, "a");
+
+    stmt_t* stmt2 = vector_get(stmt->value.if_stmt->body, 0);
+    cr_assert_eq(stmt2->kind, STMT_EXPR);
+    cr_assert_eq(stmt2->value.expr->kind, EX_IDENT);
+    cr_assert_str_eq(stmt2->value.expr->value.value->data, "b");
+
+    cr_assert_null(stmt->value.if_stmt->else_branch->if_branch);
+    stmt_t* stmt3 = vector_get(stmt->value.if_stmt->else_branch->body, 0);
+    cr_assert_eq(stmt3->kind, STMT_EXPR);
+    cr_assert_eq(stmt3->value.expr->kind, EX_IDENT);
+    cr_assert_str_eq(stmt3->value.expr->value.value->data, "c");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, if_with_else_if) {
+    lexer_t* lexer = new_lexer(
+        "test.cr",
+        "if (a) {\nb;b2;\n} else if (c) {\nd;\n}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_IF);
+    cr_assert_eq(stmt->value.if_stmt->condition->kind, EX_IDENT);
+    cr_assert_str_eq(stmt->value.if_stmt->condition->value.value->data, "a");
+
+    stmt_t* stmt2 = vector_get(stmt->value.if_stmt->body, 0);
+    cr_assert_eq(stmt2->kind, STMT_EXPR);
+    cr_assert_eq(stmt2->value.expr->kind, EX_IDENT);
+    cr_assert_str_eq(stmt2->value.expr->value.value->data, "b");
+
+    stmt_t* stmt3 = vector_get(stmt->value.if_stmt->body, 1);
+    cr_assert_eq(stmt3->kind, STMT_EXPR);
+    cr_assert_eq(stmt3->value.expr->kind, EX_IDENT);
+    cr_assert_str_eq(stmt3->value.expr->value.value->data, "b2");
+
+    if_stmt_t* if_branch = stmt->value.if_stmt->else_branch->if_branch;
+    cr_assert_null(stmt->value.if_stmt->else_branch->body);
+    cr_assert_null(if_branch->else_branch);
+    cr_assert_eq(if_branch->condition->kind, EX_IDENT);
+    cr_assert_str_eq(if_branch->condition->value.value->data, "c");
+    stmt_t* stmt4 = vector_get(if_branch->body, 0);
+    cr_assert_eq(stmt4->kind, STMT_EXPR);
+    cr_assert_eq(stmt4->value.expr->kind, EX_IDENT);
+    cr_assert_str_eq(stmt4->value.expr->value.value->data, "d");
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
