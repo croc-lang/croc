@@ -14,6 +14,20 @@ Test(parser, int) {
     parser_drop(parser);
 }
 
+Test(parser, string_auto_concat) {
+    lexer_t* lexer = new_lexer("test.cr", "\"hello\" \" world\";");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_EXPR);
+    cr_assert_eq(stmt->value.expr->kind, EX_STRING_LITERAL);
+    cr_assert_str_eq(stmt->value.expr->value.value->data, "hello world");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
 Test(parser, unary) {
     const int const size = 7;
 
