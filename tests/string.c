@@ -110,3 +110,14 @@ Test(string, equality) {
 
     string_drop(str);
 }
+
+Test(string, clone) {
+    string_t* str = new_string("Hello");
+    string_t* str2 = string_clone(str);;
+
+    cr_assert(string_eq(str, str2));
+    cr_assert_neq(str, str2);
+
+    string_drop(str);
+    string_drop(str2);
+}

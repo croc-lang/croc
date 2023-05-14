@@ -10,6 +10,10 @@ location_t* new_location(size_t line, size_t col, size_t start, size_t end) {
     return location;
 }
 
+location_t* location_clone(location_t* self) {
+    return new_location(self->line, self->col, self->start, self->end);
+}
+
 void location_drop(location_t* self) {
     free(self);
 }

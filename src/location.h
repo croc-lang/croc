@@ -9,5 +9,6 @@ typedef struct Location {
 } location_t;
 
 location_t* new_location(size_t line, size_t col, size_t pos, size_t size);
+location_t* location_clone(location_t* self);
 void location_drop(location_t* self);
 #endif
