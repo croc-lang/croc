@@ -86,8 +86,15 @@ static expr_t* parse_primary_expr(parser_t* self) {
     expr_t* expr;
 
     switch (self->current->kind) {
-    case TK_IDENT:
     case TK_STRING:
+        token = parser_advence(self);
+        value.value = token->value;
+        while(parser_check(self, TK_STRING)) {
+            token = parser_advence(self);
+            string_push_str(value.value, token->value);
+        }
+        return new_expr(EX_STRING_LITERAL, value);
+    case TK_IDENT:
     case TK_INT:
     case TK_FLOAT:
         token = parser_advence(self);
