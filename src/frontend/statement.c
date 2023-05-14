@@ -23,8 +23,8 @@ void var_stmt_drop(var_stmt_t* self) {
 
 func_stmt_t* new_func_stmt(
     string_t* name,
-    expr_t* return_type,
-    /*expr_arg_t*/vector_t* args,
+    type_t* return_type,
+    /*arg_expr_t*/vector_t* args,
     /*stmt_t*/vector_t* body
 ) {
     func_stmt_t* stmt = malloc(sizeof(func_stmt_t));

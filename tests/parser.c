@@ -288,3 +288,64 @@ Test(parser, const_with_type_declaration) {
     stmt_drop(stmt);
     parser_drop(parser);
 }
+
+Test(parser, func_definition) {
+    lexer_t* lexer = new_lexer("test.cr", "func test() {}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_null(stmt->value.func->return_type);
+    cr_assert_eq(stmt->value.func->args->len, 0);
+    cr_assert_eq(stmt->value.func->body->len, 0);
+    cr_assert_str_eq(stmt->value.func->name->data, "test");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, func_with_return_type) {
+    lexer_t* lexer = new_lexer("test.cr", "func test() int {}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_eq(stmt->value.func->return_type->kind, TY_PATH);
+    string_t* segment = vector_get(
+        stmt->value.func->return_type->value.path->segments,
+        0);
+    cr_assert_str_eq(segment->data, "int");
+
+    cr_assert_eq(stmt->value.func->args->len, 0);
+    cr_assert_eq(stmt->value.func->body->len, 0);
+    cr_assert_str_eq(stmt->value.func->name->data, "test");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, func_with_argument) {
+    lexer_t* lexer = new_lexer("test.cr", "func test(int a) {}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_null(stmt->value.func->return_type);
+
+    arg_expr_t* arg = vector_get(
+        stmt->value.func->args,
+        0);
+    cr_assert_str_eq(arg->name->data, "a");
+    cr_assert_eq(arg->type->kind, TY_PATH);
+    string_t* segment = vector_get(arg->type->value.path->segments, 0);
+    cr_assert_str_eq(segment->data, "int");
+
+    cr_assert_eq(stmt->value.func->body->len, 0);
+    cr_assert_str_eq(stmt->value.func->name->data, "test");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
