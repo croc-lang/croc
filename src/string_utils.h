@@ -19,6 +19,7 @@ string_t* string_slice(string_t* self, size_t start, size_t end);
 string_t* string_push(string_t* self, char* str2);
 string_t* string_push_char(string_t* self, char c);
 string_t* string_push_str(string_t* self, string_t* str2);
+string_t* string_clone(string_t* self);
 void string_drop(string_t* self);
 
 char* strslice(const char *str, size_t start, size_t end);

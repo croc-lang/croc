@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdlib.h>
 #include "vector.h"
 
@@ -21,7 +22,7 @@ void* vector_get(vector_t* self, size_t index) {
 }
 
 /*
- * resize string_t object 'self' with the new size 'len'.
+ * resize vector_t object 'self' with the new size 'len'.
  * return the new memory adresse with the new size allocated or NULL if realloc
  * failed.
  */
@@ -67,6 +68,25 @@ void* vector_pop(vector_t* self) {
     void* popped_element = vector_get(self, --self->len);
     self->data[self->len] = NULL;
     return popped_element;
+}
+
+vector_t* vector_clone(vector_t* self) {
+    vector_t* vec = malloc(sizeof(vector_t));
+    void** data = NULL;
+
+    if (vec == NULL)
+        return NULL;
+
+    if (self->data) {
+        data = malloc(self->len * sizeof(void*));
+        memcpy(data, self->data, self->len * sizeof(void*));
+    }
+
+    vec->capacity = self->len;
+    vec->len = self->len;
+    vec->data = data;
+
+    return vec;
 }
 
 void vector_deeply_drop(vector_t* self, void (*dropper)(void*)) {

@@ -176,6 +176,27 @@ string_t* string_push_str(string_t* self, string_t* str) {
     return NULL;
 }
 
+string_t* string_clone(string_t* self) {
+    string_t* str = malloc(sizeof(string_t));
+    char* data = NULL;
+
+    if (str == NULL)
+        return NULL;
+
+    data = malloc(self->len + 1);
+
+    if (data == NULL)
+        return NULL;
+
+    memcpy(data, self->data, self->len + 1);
+
+    str->capacity = self->len;
+    str->len = self->len;
+    str->data = data;
+
+    return str;
+}
+
 /*
  * free string_t object.
  */
