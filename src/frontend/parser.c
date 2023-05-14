@@ -89,7 +89,7 @@ static expr_t* parse_primary_expr(parser_t* self) {
     case TK_STRING:
         token = parser_advence(self);
         value.value = token->value;
-        while(parser_check(self, TK_STRING)) {
+        while (parser_check(self, TK_STRING)) {
             token = parser_advence(self);
             string_push_str(value.value, token->value);
         }
@@ -177,28 +177,32 @@ PARSE_OP_EXPR(
 )
 
 static stmt_t* parse_func(parser_t* self) {
-    parser_eat(self, TK_KW_FUNC);  // skip the func kw
-    string_t* name = token_get_value(parser_eat(self, TK_IDENT), "");
-
     vector_t* args = new_vector();
-    parser_eat(self, TK_RPAREN);
-    while (!parser_check(self, TK_LPAREN)) {
+    vector_t* body = new_vector();
+    string_t* name = NULL;
+    type_t* type = NULL;
+    stmt_t* stmt = NULL;
+
+    parser_eat(self, TK_KW_FUNC);  // skip the func kw
+    name = token_get_value(parser_eat(self, TK_IDENT), "");
+
+    parser_eat(self, TK_LPAREN);
+    while (!parser_check(self, TK_RPAREN)) {
         vector_push(args, parse_arg(self));
         if (!parser_check(self, TK_COMMA)) break;
     }
-    parser_eat(self, TK_LPAREN);
+    parser_eat(self, TK_RPAREN);
 
-    expr_t* type = parse_expr(self);
+    if (!parser_check(self, TK_LBRACE)) type = parse_type(self);
 
-    vector_t* body = new_vector();
-    parser_eat(self, TK_RBRACE);
-    while (!parser_check(self, TK_LBRACE)) {
-        stmt_t* stmt = parser_next(self);
+    parser_eat(self, TK_LBRACE);
+    while (!parser_check(self, TK_RBRACE)) {
+        stmt = parser_next(self);
         if (!stmt) break;
         vector_push(body, stmt);
         if (!parser_check(self, TK_COMMA)) break;
     }
-    parser_eat(self, TK_LBRACE);
+    parser_eat(self, TK_RBRACE);
 
     stmt_value_t value = {.func = new_func_stmt(name, type, args, body)};
     return new_stmt(STMT_FUNC_DEFINITION, value);
