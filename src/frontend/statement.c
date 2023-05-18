@@ -16,8 +16,9 @@ var_stmt_t* new_var_stmt(
 }
 
 void var_stmt_drop(var_stmt_t* self) {
-    stmt_drop(self->left);
-    stmt_drop(self->right);
+    if (self->type != NULL) type_drop(self->type);
+    expr_drop(self->left);
+    expr_drop(self->right);
     free(self);
 }
 
@@ -85,5 +86,13 @@ stmt_t* new_stmt(stmt_kind_t kind, stmt_value_t value) {
 }
 
 void stmt_drop(stmt_t* self) {
+    // if (self->kind == STMT_VAR_DECLARATION)
+    //     var_stmt_drop(self->value.var);
+    // if (self->kind == STMT_FUNC_DEFINITION)
+    //     func_stmt_drop(self->value.func);
+    if (self->kind == STMT_IF)
+        if_stmt_drop(self->value.if_stmt);
+    else if (self->kind == STMT_EXPR)
+        expr_drop(self->value.expr);
     free(self);
 }

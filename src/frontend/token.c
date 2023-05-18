@@ -11,7 +11,7 @@ token_t* new_token(token_kind_t kind, string_t* value, location_t* location) {
 
 string_t* token_get_value(token_t* self, char* or_default) {
     if (self->value == NULL) return new_string(or_default);
-    return self->value;
+    return string_clone(self->value);
 }
 
 bool token_check(token_t* self, token_t* other) {
