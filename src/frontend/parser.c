@@ -8,11 +8,15 @@ static if_stmt_t* parse_if_branch(parser_t* self);
 #define PARSE_OP_EXPR(name, calle, size, ...) \
 static expr_t* name(parser_t* self) { \
     expr_t* left = calle(self); \
+    token_t* token = NULL; \
+    expr_value_t value; \
+    expr_kind_t op; \
     while (parser_checks(self, size, __VA_ARGS__)) { \
-        token_kind_t token_kind = parser_advence(self)->kind; \
-        expr_kind_t op = from_token(token_kind); \
-        expr_value_t value = {.binary = new_binary_expr(left, calle(self))}; \
+        token = parser_advence(self); \
+        expr_kind_t op = from_token(token->kind); \
+        value.binary = new_binary_expr(left, calle(self)); \
         left = new_expr(op, value); \
+        token_drop(token); \
     } \
     return left; \
 }
@@ -45,28 +49,29 @@ inline static bool parser_checks(parser_t* self, size_t size, ...) {
     return false;
 }
 
-inline static token_t* parser_eat(parser_t* self, token_kind_t kind) {
+inline static void parser_eat(parser_t* self, token_kind_t kind) {
     if (!parser_check(self, kind)) {
         context_add_error(self->context,
             new_error(CTX_ERR_INVALID_TOKEN,
                 format_string(
                     "`%s` was invalid",
                     token_get_value(self->current, "")),
-                self->current->location));
+                location_clone(self->current->location)));
     }
-    token_t* prev = self->current;
+    token_drop(self->current);
     self->current = lexer_next_token(self->lexer);
-    return prev;
 }
 
 static path_type_t* parse_type_path(parser_t* self) {
     vector_t* segments = new_vector();
 
-    vector_push(segments, token_get_value(parser_eat(self, TK_IDENT), ""));
+    vector_push(segments, token_get_value(self->current, ""));
+    parser_eat(self, TK_IDENT);
 
     while (parser_check(self, TK_DB_COLON)) {
         parser_eat(self, TK_DB_COLON);
-        string_t* name = token_get_value(parser_eat(self, TK_IDENT), "");
+        string_t* name = token_get_value(self->current, "");
+        parser_eat(self, TK_IDENT);
         vector_push(segments, name);
     }
 
@@ -75,44 +80,52 @@ static path_type_t* parse_type_path(parser_t* self) {
 
 static arg_expr_t* parse_arg(parser_t* self) {
     type_t* type = parse_type(self);
-    string_t* name = token_get_value(parser_eat(self, TK_IDENT), "");
+    string_t* name = token_get_value(self->current, "");
+    parser_eat(self, TK_IDENT);
 
     return new_arg_expr(type, name);
 }
 
 static expr_t* parse_primary_expr(parser_t* self) {
+    token_t* token = NULL;
+    expr_t* expr = NULL;
     expr_value_t value;
-    token_t* token;
-    expr_t* expr;
 
     switch (self->current->kind) {
     case TK_STRING:
         token = parser_advence(self);
-        value.value = token->value;
+        value.value = string_clone(token->value);
+        token_drop(token);
         while (parser_check(self, TK_STRING)) {
             token = parser_advence(self);
             string_push_str(value.value, token->value);
+            token_drop(token);
         }
-        return new_expr(EX_STRING_LITERAL, value);
+        expr = new_expr(EX_STRING_LITERAL, value);
+        break;
     case TK_IDENT:
     case TK_INT:
     case TK_FLOAT:
         token = parser_advence(self);
-        value.value = token->value;
-        return new_expr(from_token(token->kind), value);
+        value.value = string_clone(token->value);
+        expr = new_expr(from_token(token->kind), value);
+        token_drop(token);
+        break;
     case TK_LPAREN:
         parser_eat(self, TK_LPAREN);
         expr = parse_expr(self);
         parser_eat(self, TK_RPAREN);
-        return expr;
-    default:
         break;
     }
+
+    return expr;
 }
 
 static expr_t* parse_unary_expr(parser_t* self) {
     expr_kind_t kind = EX_NONE;
+    token_t* token = NULL;
     expr_t* expr = NULL;
+    expr_value_t value;
 
     if (parser_checks(self,
         5,
@@ -121,8 +134,8 @@ static expr_t* parse_unary_expr(parser_t* self) {
         TK_TILDE,
         TK_INCREMENT,
         TK_DECREMENT)) {
-        token_t* token = parser_advence(self);
-        expr_value_t value = {.unary = new_unary_expr(parse_unary_expr(self))};
+        token = parser_advence(self);
+        value.unary = new_unary_expr(parse_unary_expr(self));
         switch (token->kind) {
         case TK_MINUS:
             kind = EX_UNA_NEG;
@@ -140,13 +153,14 @@ static expr_t* parse_unary_expr(parser_t* self) {
             kind = EX_UNA_DECR;
             break;
         }
+        token_drop(token);
         return new_expr(kind, value);
     }
 
     expr = parse_primary_expr(self);
     while (parser_checks(self, 2, TK_INCREMENT, TK_DECREMENT)) {
-        token_t* token = parser_advence(self);
-        expr_value_t value = {.unary = new_unary_expr(expr)};
+        token = parser_advence(self);
+        value.unary = new_unary_expr(expr);
         switch (token->kind) {
             case TK_INCREMENT:
                 kind = EX_UNA_SUFFIX_INCR;
@@ -155,6 +169,7 @@ static expr_t* parse_unary_expr(parser_t* self) {
                 kind = EX_UNA_SUFFIX_DECR;
                 break;
         }
+        token_drop(token);
         expr = new_expr(kind, value);
     }
     return expr;
@@ -182,9 +197,11 @@ static stmt_t* parse_func(parser_t* self) {
     string_t* name = NULL;
     type_t* type = NULL;
     stmt_t* stmt = NULL;
+    stmt_value_t value;
 
     parser_eat(self, TK_KW_FUNC);  // skip the func kw
-    name = token_get_value(parser_eat(self, TK_IDENT), "");
+    name = token_get_value(self->current, "");
+    parser_eat(self, TK_IDENT);
 
     parser_eat(self, TK_LPAREN);
     while (!parser_check(self, TK_RPAREN)) {
@@ -204,37 +221,26 @@ static stmt_t* parse_func(parser_t* self) {
     }
     parser_eat(self, TK_RBRACE);
 
-    stmt_value_t value = {.func = new_func_stmt(name, type, args, body)};
+    value.func = new_func_stmt(name, type, args, body);
     return new_stmt(STMT_FUNC_DEFINITION, value);
 }
 
-static stmt_t* parse_var(parser_t* self) {
+static stmt_t* parse_var_declaration(parser_t* self, bool constant) {
     type_t* type = NULL;
+    expr_t* init = NULL;
+    stmt_value_t value;
+    expr_t* id = NULL;
+    if (constant) parser_eat(self, TK_KW_CONST);
     if (parser_check(self, TK_KW_LET)) parser_eat(self, TK_KW_LET);
     else type = parse_type(self);
 
-    expr_t* id = parse_expr(self);
+    id = parse_expr(self);
 
     parser_eat(self, TK_EQ);
 
-    expr_t* init = parse_expr(self);
+    init = parse_expr(self);
 
-    stmt_value_t value = {.var = new_var_stmt(false, type, id, init)};
-    return new_stmt(STMT_VAR_DECLARATION, value);
-}
-
-static stmt_t* parse_const(parser_t* self) {
-    type_t* type = NULL;
-    parser_eat(self, TK_KW_CONST);
-    if (parser_check(self, TK_KW_LET)) parser_eat(self, TK_KW_LET);
-    else type = parse_type(self);
-    expr_t* id = parse_expr(self);
-
-    parser_eat(self, TK_EQ);
-
-    expr_t* init = parse_expr(self);
-
-    stmt_value_t value = {.var = new_var_stmt(true, type, id, init)};
+    value.var = new_var_stmt(constant, type, id, init);
     return new_stmt(STMT_VAR_DECLARATION, value);
 }
 
@@ -342,6 +348,7 @@ stmt_t* parser_next(parser_t* self) {
     location_t* start_position;
     size_t number_errors;
     stmt_t* stmt = NULL;
+    stmt_value_t value;
 
     switch (self->current->kind) {
     case TK_EOF:
@@ -351,27 +358,29 @@ stmt_t* parser_next(parser_t* self) {
         stmt = parse_func(self);
         break;
     case TK_KW_LET:
-        stmt = parse_var(self);
+        stmt = parse_var_declaration(self, false);
         parser_eat(self, TK_SEMICOLON);
         break;
     case TK_KW_CONST:
-        stmt = parse_const(self);
+        stmt = parse_var_declaration(self, true);
         parser_eat(self, TK_SEMICOLON);
         break;
     case TK_KW_IF:
         stmt = parse_if(self);
         break;
     default:
-        start_position = self->current->location;
-        stmt = parse_var(self);
+        start_position = location_clone(self->current->location);
+        stmt = parse_var_declaration(self, false);
         number_errors = self->context->errors->len - errors_len;
 
         if (number_errors) {
+            // FIXME(hana): the drop of stmt crash
+            // var_stmt_drop(stmt->value.var);
             context_forget_errors(self->context, number_errors);
             lexer_goto_location(self->lexer, start_position);
-            parser_advence(self);
-            stmt_drop(stmt);
-            stmt_value_t value = {.expr = parse_expr(self)};
+            token_drop(parser_advence(self));
+
+            value.expr = parse_expr(self);
             stmt = new_stmt(STMT_EXPR, value);
         }
         parser_eat(self, TK_SEMICOLON);
@@ -382,5 +391,6 @@ stmt_t* parser_next(parser_t* self) {
 
 void parser_drop(parser_t* self) {
     lexer_drop(self->lexer);
+    token_drop(self->current);
     free(self);
 }

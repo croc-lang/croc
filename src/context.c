@@ -14,6 +14,8 @@ ctx_error_t* new_error(
 }
 
 void error_drop(ctx_error_t* self) {
+    location_drop(self->location);
+    string_drop(self->msg);
     free(self);
 }
 
