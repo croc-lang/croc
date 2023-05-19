@@ -88,6 +88,7 @@ static arg_expr_t* parse_arg(parser_t* self) {
 }
 
 static expr_t* parse_primary_expr(parser_t* self) {
+    vector_t* body = NULL;
     token_t* token = NULL;
     expr_t* expr = NULL;
     expr_value_t value;
@@ -115,7 +116,31 @@ static expr_t* parse_primary_expr(parser_t* self) {
     case TK_LPAREN:
         parser_eat(self, TK_LPAREN);
         expr = parse_expr(self);
+        if (parser_check(self, TK_COMMA)) {
+            body = new_vector();
+            parser_eat(self, TK_COMMA);
+            vector_push(body, expr);
+            while (!parser_check(self, TK_RPAREN)) {
+                vector_push(body, parse_expr(self));
+                if (!parser_check(self, TK_COMMA)) break;
+                parser_eat(self, TK_COMMA);
+            }
+            value.list = body;
+            expr = new_expr(EX_TUPLE, value);
+        }
         parser_eat(self, TK_RPAREN);
+        break;
+    case TK_LBRACKET:
+        body = new_vector();
+        parser_eat(self, TK_LBRACKET);
+        while (!parser_check(self, TK_RBRACKET)) {
+            vector_push(body, parse_expr(self));
+            if (!parser_check(self, TK_COMMA)) break;
+                parser_eat(self, TK_COMMA);
+        }
+        parser_eat(self, TK_RBRACKET);
+        value.list = body;
+        expr = new_expr(EX_ARRAY, value);
         break;
     }
 
@@ -208,6 +233,7 @@ static stmt_t* parse_func(parser_t* self) {
     while (!parser_check(self, TK_RPAREN)) {
         vector_push(args, parse_arg(self));
         if (!parser_check(self, TK_COMMA)) break;
+        parser_eat(self, TK_COMMA);
     }
     parser_eat(self, TK_RPAREN);
 
@@ -219,6 +245,7 @@ static stmt_t* parse_func(parser_t* self) {
         if (!stmt) break;
         vector_push(body, stmt);
         if (!parser_check(self, TK_COMMA)) break;
+        parser_eat(self, TK_COMMA);
     }
     parser_eat(self, TK_RBRACE);
 
@@ -379,7 +406,9 @@ stmt_t* parser_next(parser_t* self) {
         }
 
         if (stmt == NULL) {
-            context_forget_errors(self->context, self->context->errors->len - errors_len);
+            context_forget_errors(
+                self->context,
+                self->context->errors->len - errors_len);
             lexer_goto_location(self->lexer, start_position);
             token_drop(parser_advence(self));
 

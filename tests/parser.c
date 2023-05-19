@@ -9,6 +9,123 @@ Test(parser, int) {
 
     cr_assert_eq(stmt->kind, STMT_EXPR);
     cr_assert_eq(stmt->value.expr->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(stmt->value.expr->value.value->data, "1");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, int_in_parent) {
+    lexer_t* lexer = new_lexer("test.cr", "(1);");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_EXPR);
+    cr_assert_eq(stmt->value.expr->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(stmt->value.expr->value.value->data, "1");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, tuple_with_1_element) {
+    lexer_t* lexer = new_lexer("test.cr", "(1,);");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_EXPR);
+    cr_assert_eq(stmt->value.expr->kind, EX_TUPLE);
+
+    vector_t* list = stmt->value.expr->value.list;
+    expr_t* one = vector_get(list, 0);
+    cr_assert_eq(one->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(one->value.value->data, "1");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, tuple_with_more_elements) {
+    lexer_t* lexer = new_lexer("test.cr", "(1, 2, 3);");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_EXPR);
+    cr_assert_eq(stmt->value.expr->kind, EX_TUPLE);
+
+    vector_t* list = stmt->value.expr->value.list;
+    expr_t* one = vector_get(list, 0);
+    cr_assert_eq(one->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(one->value.value->data, "1");
+
+    expr_t* two = vector_get(list, 1);
+    cr_assert_eq(two->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(two->value.value->data, "2");
+
+    expr_t* three = vector_get(list, 2);
+    cr_assert_eq(three->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(three->value.value->data, "3");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, array_with_no_element) {
+    lexer_t* lexer = new_lexer("test.cr", "[];");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_EXPR);
+    cr_assert_eq(stmt->value.expr->kind, EX_ARRAY);
+    cr_assert_eq(stmt->value.expr->value.list->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, array_with_1_element) {
+    lexer_t* lexer = new_lexer("test.cr", "[1];");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_EXPR);
+    cr_assert_eq(stmt->value.expr->kind, EX_ARRAY);
+
+    vector_t* list = stmt->value.expr->value.list;
+    expr_t* one = vector_get(list, 0);
+    cr_assert_eq(one->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(one->value.value->data, "1");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, array_with_more_elements) {
+    lexer_t* lexer = new_lexer("test.cr", "[1, 2, 3];");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_EXPR);
+    cr_assert_eq(stmt->value.expr->kind, EX_ARRAY);
+
+    vector_t* list = stmt->value.expr->value.list;
+    expr_t* one = vector_get(list, 0);
+    cr_assert_eq(one->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(one->value.value->data, "1");
+
+    expr_t* two = vector_get(list, 1);
+    cr_assert_eq(two->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(two->value.value->data, "2");
+
+    expr_t* three = vector_get(list, 2);
+    cr_assert_eq(three->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(three->value.value->data, "3");
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -326,7 +443,7 @@ Test(parser, func_with_return_type) {
     parser_drop(parser);
 }
 
-Test(parser, func_with_argument) {
+Test(parser, func_with_1_argument) {
     lexer_t* lexer = new_lexer("test.cr", "func test(int a) {}");
     parser_t* parser = new_parser(lexer);
 
@@ -342,6 +459,38 @@ Test(parser, func_with_argument) {
     cr_assert_eq(arg->type->kind, TY_PATH);
     string_t* segment = vector_get(arg->type->value.path->segments, 0);
     cr_assert_str_eq(segment->data, "int");
+
+    cr_assert_eq(stmt->value.func->body->len, 0);
+    cr_assert_str_eq(stmt->value.func->name->data, "test");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, func_with_more_arguments) {
+    lexer_t* lexer = new_lexer("test.cr", "func test(int a, int b) {}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_null(stmt->value.func->return_type);
+
+    arg_expr_t* arg = vector_get(
+        stmt->value.func->args,
+        0);
+    cr_assert_str_eq(arg->name->data, "a");
+    cr_assert_eq(arg->type->kind, TY_PATH);
+    string_t* segment = vector_get(arg->type->value.path->segments, 0);
+    cr_assert_str_eq(segment->data, "int");
+
+    arg_expr_t* arg2 = vector_get(
+        stmt->value.func->args,
+        1);
+    cr_assert_str_eq(arg2->name->data, "b");
+    cr_assert_eq(arg2->type->kind, TY_PATH);
+    string_t* segment2 = vector_get(arg2->type->value.path->segments, 0);
+    cr_assert_str_eq(segment2->data, "int");
 
     cr_assert_eq(stmt->value.func->body->len, 0);
     cr_assert_str_eq(stmt->value.func->name->data, "test");

@@ -50,7 +50,9 @@ void expr_drop(expr_t* self) {
         binary_expr_drop(self->value.binary);
     else if (self->kind >= EX_UNA_SUFFIX_INCR && self->kind <= EX_UNA_NEG)
         unary_expr_drop(self->value.unary);
-    else if (self->kind >= EX_VAR_ASSIGN && self->kind <= EX_BIN_MOD)
+    else if (self->kind >= EX_ARRAY && self->kind <= EX_TUPLE)
+        vector_deeply_drop(self->value.list, expr_drop);
+    else if (self->kind >= EX_IDENT && self->kind <= EX_STRING_LITERAL)
         string_drop(self->value.value);
     free(self);
 }
