@@ -38,9 +38,10 @@ func_stmt_t* new_func_stmt(
 
 void func_stmt_drop(func_stmt_t* self) {
     string_drop(self->name);
-    expr_drop(self->return_type);
-    vector_drop(self->args);
-    vector_drop(self->body);
+    if (self->return_type != NULL)
+        type_drop(self->return_type);
+    vector_deeply_drop(self->args, arg_expr_drop);
+    vector_deeply_drop(self->body, stmt_drop);
     free(self);
 }
 
@@ -55,8 +56,10 @@ else_branch_stmt_t* new_else_branch_stmt(
 }
 
 void else_branch_stmt_drop(else_branch_stmt_t* self) {
-    vector_deeply_drop(self->body, stmt_drop);
-    if_stmt_drop(self->if_branch);
+    if(self->body != NULL)
+        vector_deeply_drop(self->body, stmt_drop);
+    else
+        if_stmt_drop(self->if_branch);
     free(self);
 }
 
@@ -73,8 +76,10 @@ if_stmt_t* new_if_stmt(
 }
 
 void if_stmt_drop(if_stmt_t* self) {
+    if (self->else_branch != NULL)
+        else_branch_stmt_drop(self->else_branch);
+    vector_deeply_drop(self->body, stmt_drop);
     expr_drop(self->condition);
-    vector_drop(self->body);
     free(self);
 }
 
@@ -86,11 +91,11 @@ stmt_t* new_stmt(stmt_kind_t kind, stmt_value_t value) {
 }
 
 void stmt_drop(stmt_t* self) {
-    // if (self->kind == STMT_VAR_DECLARATION)
-    //     var_stmt_drop(self->value.var);
-    // if (self->kind == STMT_FUNC_DEFINITION)
-    //     func_stmt_drop(self->value.func);
-    if (self->kind == STMT_IF)
+    if (self->kind == STMT_VAR_DECLARATION)
+        var_stmt_drop(self->value.var);
+    else if (self->kind == STMT_FUNC_DEFINITION)
+        func_stmt_drop(self->value.func);
+    else if (self->kind == STMT_IF)
         if_stmt_drop(self->value.if_stmt);
     else if (self->kind == STMT_EXPR)
         expr_drop(self->value.expr);

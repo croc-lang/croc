@@ -13,7 +13,7 @@ static expr_t* name(parser_t* self) { \
     expr_kind_t op; \
     while (parser_checks(self, size, __VA_ARGS__)) { \
         token = parser_advence(self); \
-        expr_kind_t op = from_token(token->kind); \
+        op = from_token(token->kind); \
         value.binary = new_binary_expr(left, calle(self)); \
         left = new_expr(op, value); \
         token_drop(token); \
@@ -64,13 +64,14 @@ inline static void parser_eat(parser_t* self, token_kind_t kind) {
 
 static path_type_t* parse_type_path(parser_t* self) {
     vector_t* segments = new_vector();
+    string_t* name = token_get_value(self->current, "");
 
-    vector_push(segments, token_get_value(self->current, ""));
+    vector_push(segments, name);
     parser_eat(self, TK_IDENT);
 
     while (parser_check(self, TK_DB_COLON)) {
         parser_eat(self, TK_DB_COLON);
-        string_t* name = token_get_value(self->current, "");
+        name = token_get_value(self->current, "");
         parser_eat(self, TK_IDENT);
         vector_push(segments, name);
     }
@@ -291,12 +292,11 @@ static stmt_t* parse_if(parser_t* self) {
 }
 
 type_t* parse_type(parser_t* self) {
-    type_t* type;
-
+    vector_t* generics = NULL;
+    token_t* token = NULL;
+    type_t* type = NULL;
     type_value_t value;
     type_kind_t kind;
-    expr_t* size = NULL;
-    vector_t* generics = NULL;
 
     path_type_t* path = parse_type_path(self);
     if (parser_check(self, TK_CMP_LT)) {
@@ -316,9 +316,9 @@ type_t* parse_type(parser_t* self) {
     }
     type = new_type(kind, value);
 
-    while (parser_checks(self, TK_STAR, TK_BIN_AND, TK_LBRACKET)) {
-        token_kind_t token_kind = parser_advence(self)->kind;
-        switch (token_kind) {
+    while (parser_checks(self, 3, TK_STAR, TK_BIN_AND, TK_LBRACKET)) {
+        token = parser_advence(self);
+        switch (token->kind) {
         case TK_STAR:
             value.type = type;
             kind = TY_POINTER;
@@ -333,6 +333,7 @@ type_t* parse_type(parser_t* self) {
             kind = TY_SLICE;
             break;
         }
+        token_drop(token);
         type = new_type(kind, value);
     }
 
@@ -345,15 +346,13 @@ expr_t* parse_expr(parser_t* self) {
 
 stmt_t* parser_next(parser_t* self) {
     size_t errors_len = self->context->errors->len;
-    location_t* start_position;
-    size_t number_errors;
+    location_t* start_position = NULL;
+    token_t* token = NULL;
     stmt_t* stmt = NULL;
     stmt_value_t value;
 
     switch (self->current->kind) {
-    case TK_EOF:
-        stmt = NULL;
-        break;
+    case TK_EOF: break;
     case TK_KW_FUNC:
         stmt = parse_func(self);
         break;
@@ -370,13 +369,17 @@ stmt_t* parser_next(parser_t* self) {
         break;
     default:
         start_position = location_clone(self->current->location);
-        stmt = parse_var_declaration(self, false);
-        number_errors = self->context->errors->len - errors_len;
+        if (parser_check(self, TK_IDENT)) {
+            type_drop(parse_type(self));
+            if (parser_check(self, TK_IDENT)) {
+                lexer_goto_location(self->lexer, start_position);
+                token_drop(parser_advence(self));
+                stmt = parse_var_declaration(self, false);
+            }
+        }
 
-        if (number_errors) {
-            // FIXME(hana): the drop of stmt crash
-            // var_stmt_drop(stmt->value.var);
-            context_forget_errors(self->context, number_errors);
+        if (stmt == NULL) {
+            context_forget_errors(self->context, self->context->errors->len - errors_len);
             lexer_goto_location(self->lexer, start_position);
             token_drop(parser_advence(self));
 
