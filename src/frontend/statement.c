@@ -56,7 +56,7 @@ else_branch_stmt_t* new_else_branch_stmt(
 }
 
 void else_branch_stmt_drop(else_branch_stmt_t* self) {
-    if(self->body != NULL)
+    if (self->body != NULL)
         vector_deeply_drop(self->body, stmt_drop);
     else
         if_stmt_drop(self->if_branch);

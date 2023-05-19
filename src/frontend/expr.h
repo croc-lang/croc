@@ -32,6 +32,8 @@ typedef enum ExprKind {
     EX_UNA_NOT,
     EX_UNA_NEG,
 
+    EX_ARRAY,
+    EX_TUPLE,
     EX_IDENT,
     EX_INT_LITERAL,
     EX_FLOAT_LITERAL,
@@ -46,6 +48,9 @@ typedef union ExprValue {
 
     // EX_UNA_*
     unary_expr_t* unary;
+
+    // EX_ARRAY, EX_TUPLE
+    /*expr_t*/vector_t* list;
 
     // EX_IDENT, EX_*_LITERAL,
     string_t* value;
