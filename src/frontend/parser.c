@@ -318,6 +318,30 @@ static stmt_t* parse_if(parser_t* self) {
     return new_stmt(STMT_IF, value);
 }
 
+static type_t* parse_type_tuple(parser_t* self) {
+    vector_t* body = NULL;
+    type_t* type = NULL;
+    type_value_t value;
+
+    parser_eat(self, TK_LPAREN);
+    type = parse_type(self);
+    if (parser_check(self, TK_COMMA)) {
+        body = new_vector();
+        parser_eat(self, TK_COMMA);
+        vector_push(body, type);
+        while (!parser_check(self, TK_RPAREN)) {
+            vector_push(body, parse_type(self));
+            if (!parser_check(self, TK_COMMA)) break;
+            parser_eat(self, TK_COMMA);
+        }
+        value.tuple = body;
+        type = new_type(TY_TUPLE, value);
+    }
+    parser_eat(self, TK_RPAREN);
+
+    return type;
+}
+
 type_t* parse_type(parser_t* self) {
     vector_t* generics = NULL;
     token_t* token = NULL;
@@ -325,23 +349,26 @@ type_t* parse_type(parser_t* self) {
     type_value_t value;
     type_kind_t kind;
 
-    path_type_t* path = parse_type_path(self);
-    if (parser_check(self, TK_CMP_LT)) {
-        parser_eat(self, TK_CMP_LT);
-        while (!parser_check(self, TK_CMP_GT)) {
-            vector_push(generics, parse_type(self));
-            if (!parser_check(self, TK_COMMA)) break;
-            parser_eat(self, TK_COMMA);
-        }
-        parser_eat(self, TK_CMP_GT);
+    if (parser_check(self, TK_LPAREN)) type = parse_type_tuple(self);
+    else {
+        path_type_t* path = parse_type_path(self);
+        if (parser_check(self, TK_CMP_LT)) {
+            parser_eat(self, TK_CMP_LT);
+            while (!parser_check(self, TK_CMP_GT)) {
+                vector_push(generics, parse_type(self));
+                if (!parser_check(self, TK_COMMA)) break;
+                parser_eat(self, TK_COMMA);
+            }
+            parser_eat(self, TK_CMP_GT);
 
-        value.generic = new_generic_type(path, generics);
-        kind = TY_GENERIC;
-    } else {
-        value.path = path;
-        kind = TY_PATH;
+            value.generic = new_generic_type(path, generics);
+            kind = TY_GENERIC;
+        } else {
+            value.path = path;
+            kind = TY_PATH;
+        }
+        type = new_type(kind, value);
     }
-    type = new_type(kind, value);
 
     while (parser_checks(self, 3, TK_STAR, TK_BIN_AND, TK_LBRACKET)) {
         token = parser_advence(self);

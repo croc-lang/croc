@@ -21,6 +21,7 @@ typedef struct GenericType {
 // } array_type_t;
 
 typedef enum TypeKind {
+    TY_TUPLE,
     TY_GENERIC,
     // TY_ARRAY,
     TY_POINTER,
@@ -40,6 +41,9 @@ typedef union TypeValue {
 
     // TY_ARRAY
     // array_type_t* array;
+
+    // TY_TUPLE
+    vector_t* tuple;
 
     // TY_POINTER, TY_REFERENCE, TY_SLICE
     type_t* type;
