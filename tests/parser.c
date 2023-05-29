@@ -361,6 +361,48 @@ Test(parser, var_with_type_declaration) {
     parser_drop(parser);
 }
 
+Test(parser, var_with_tuple_type_declaration) {
+    lexer_t* lexer = new_lexer("test.cr", "(int, uint) a = (8, 4);");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->constant, false);
+
+    type_t* first_type = vector_get(
+        stmt->value.var->type->value.tuple,
+        0);
+    string_t* segment = vector_get(
+        first_type->value.path->segments,
+        0);
+    cr_assert_str_eq(segment->data, "int");
+
+    type_t* second_type = vector_get(
+        stmt->value.var->type->value.tuple,
+        1);
+    string_t* segment2 = vector_get(
+        second_type->value.path->segments,
+        0);
+    cr_assert_str_eq(segment2->data, "uint");
+
+    cr_assert_eq(stmt->value.var->left->kind, EX_IDENT);
+    cr_assert_str_eq(stmt->value.var->left->value.value->data, "a");
+
+    cr_assert_eq(stmt->value.var->right->kind, EX_TUPLE);
+    vector_t* list = stmt->value.var->right->value.list;
+    expr_t* one = vector_get(list, 0);
+    cr_assert_eq(one->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(one->value.value->data, "8");
+
+    expr_t* two = vector_get(list, 1);
+    cr_assert_eq(two->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(two->value.value->data, "4");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
 Test(parser, const_with_let_declaration) {
     lexer_t* lexer = new_lexer("test.cr", "const let a = 8;");
     parser_t* parser = new_parser(lexer);
@@ -432,6 +474,28 @@ Test(parser, func_with_return_type) {
     cr_assert_eq(stmt->value.func->return_type->kind, TY_PATH);
     string_t* segment = vector_get(
         stmt->value.func->return_type->value.path->segments,
+        0);
+    cr_assert_str_eq(segment->data, "int");
+
+    cr_assert_eq(stmt->value.func->args->len, 0);
+    cr_assert_eq(stmt->value.func->body->len, 0);
+    cr_assert_str_eq(stmt->value.func->name->data, "test");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, func_with_return_pointer_type) {
+    lexer_t* lexer = new_lexer("test.cr", "func test() int* {}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_eq(stmt->value.func->return_type->kind, TY_POINTER);
+    cr_assert_eq(stmt->value.func->return_type->value.type->kind, TY_PATH);
+    string_t* segment = vector_get(
+        stmt->value.func->return_type->value.type->value.path->segments,
         0);
     cr_assert_str_eq(segment->data, "int");
 

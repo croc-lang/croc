@@ -54,7 +54,7 @@ void type_drop(type_t* self) {
     else if (self->kind == TY_PATH)
         path_type_drop(self->value.path);
     else if (self->kind >= TY_POINTER && self->kind <= TY_SLICE)
-        path_type_drop(self->value.type);
+        type_drop(self->value.type);
     // else if (self->kind == TY_ARRAY)
     //     array_type_drop(self->value.array);
     free(self);
