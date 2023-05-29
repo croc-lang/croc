@@ -217,6 +217,38 @@ PARSE_OP_EXPR(
     TK_MINUS
 )
 
+static expr_t* parse_primary_declaration_expr(parser_t* self) {
+    vector_t* body = NULL;
+    expr_t* expr = NULL;
+    expr_value_t value;
+
+    switch (self->current->kind) {
+    case TK_LPAREN:
+        parser_eat(self, TK_LPAREN);
+        expr = parse_expr(self);
+        if (parser_check(self, TK_COMMA)) {
+            body = new_vector();
+            parser_eat(self, TK_COMMA);
+            vector_push(body, expr);
+            while (!parser_check(self, TK_RPAREN)) {
+                vector_push(body, parse_expr(self));
+                if (!parser_check(self, TK_COMMA)) break;
+                parser_eat(self, TK_COMMA);
+            }
+            value.list = body;
+            expr = new_expr(EX_TUPLE, value);
+        }
+        parser_eat(self, TK_RPAREN);
+        break;
+    default:
+        value.value = token_get_value(self->current, "");
+        expr = new_expr(from_token(self->current->kind), value);
+        parser_eat(self, TK_IDENT);
+    }
+
+    return expr;
+}
+
 static stmt_t* parse_func(parser_t* self) {
     vector_t* args = new_vector();
     vector_t* body = new_vector();
@@ -262,7 +294,7 @@ static stmt_t* parse_var_declaration(parser_t* self, bool constant) {
     if (parser_check(self, TK_KW_LET)) parser_eat(self, TK_KW_LET);
     else type = parse_type(self);
 
-    id = parse_expr(self);
+    id = parse_primary_declaration_expr(self);
 
     parser_eat(self, TK_EQ);
 
@@ -423,9 +455,10 @@ stmt_t* parser_next(parser_t* self) {
         break;
     default:
         start_position = location_clone(self->current->location);
-        if (parser_check(self, TK_IDENT)) {
+        if (parser_check(self, TK_IDENT) || parser_check(self, TK_LPAREN)) {
             type_drop(parse_type(self));
-            if (parser_check(self, TK_IDENT)) {
+            expr_drop(parse_primary_declaration_expr(self));
+            if (parser_check(self, TK_EQ)) {
                 lexer_goto_location(self->lexer, start_position);
                 token_drop(parser_advence(self));
                 stmt = parse_var_declaration(self, false);
