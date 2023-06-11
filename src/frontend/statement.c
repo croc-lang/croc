@@ -38,6 +38,7 @@ var_stmt_t* new_var_stmt(
     expr_t* right
 ) {
     var_stmt_t* stmt = malloc(sizeof(var_stmt_t));
+    stmt->public = false;
     stmt->constant = constant;
     stmt->type = type;
     stmt->left = left;
@@ -59,6 +60,7 @@ func_stmt_t* new_func_stmt(
     /*stmt_t*/vector_t* body
 ) {
     func_stmt_t* stmt = malloc(sizeof(func_stmt_t));
+    stmt->public = false;
     stmt->name = name;
     stmt->return_type = return_type;
     stmt->args = args;

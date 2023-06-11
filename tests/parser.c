@@ -337,6 +337,7 @@ Test(parser, var_declaration) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 0);
     cr_assert_eq(stmt->value.var->constant, false);
     cr_assert_null(stmt->value.var->type);
 
@@ -357,6 +358,7 @@ Test(parser, var_with_type_declaration) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 0);
     cr_assert_eq(stmt->value.var->constant, false);
 
     cr_assert_eq(stmt->value.var->type->kind, TY_PATH);
@@ -382,6 +384,7 @@ Test(parser, var_with_tuple_type_declaration) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 0);
     cr_assert_eq(stmt->value.var->constant, false);
 
     type_t* first_type = vector_get(
@@ -424,6 +427,7 @@ Test(parser, const_with_let_declaration) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 0);
     cr_assert_eq(stmt->value.var->constant, true);
     cr_assert_null(stmt->value.var->type);
 
@@ -444,6 +448,7 @@ Test(parser, const_with_type_declaration) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 0);
     cr_assert_eq(stmt->value.var->constant, true);
 
     cr_assert_eq(stmt->value.var->type->kind, TY_PATH);
@@ -462,6 +467,44 @@ Test(parser, const_with_type_declaration) {
     parser_drop(parser);
 }
 
+Test(parser, public_var_declaration) {
+    lexer_t* lexer = new_lexer("test.cr", "pub let a = 8;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 1);
+    cr_assert_eq(stmt->value.var->constant, false);
+    cr_assert_null(stmt->value.var->type);
+
+    cr_assert_eq(stmt->value.var->left->kind, EX_IDENT);
+    cr_assert_str_eq(stmt->value.var->left->value.value->data, "a");
+
+    cr_assert_eq(stmt->value.var->right->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(stmt->value.var->right->value.value->data, "8");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, public_func_definition) {
+    lexer_t* lexer = new_lexer("test.cr", "pub func test() {}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_eq(stmt->value.func->public, 1);
+    cr_assert_null(stmt->value.func->return_type);
+    cr_assert_eq(stmt->value.func->args->len, 0);
+    cr_assert_eq(stmt->value.func->body->len, 0);
+    cr_assert_str_eq(stmt->value.func->name->data, "test");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
 Test(parser, func_definition) {
     lexer_t* lexer = new_lexer("test.cr", "func test() {}");
     parser_t* parser = new_parser(lexer);
@@ -469,6 +512,7 @@ Test(parser, func_definition) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_eq(stmt->value.func->public, 0);
     cr_assert_null(stmt->value.func->return_type);
     cr_assert_eq(stmt->value.func->args->len, 0);
     cr_assert_eq(stmt->value.func->body->len, 0);
@@ -485,6 +529,7 @@ Test(parser, func_with_return_type) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_eq(stmt->value.func->public, 0);
     cr_assert_eq(stmt->value.func->return_type->kind, TY_PATH);
     string_t* segment = vector_get(
         stmt->value.func->return_type->value.path->segments,
@@ -506,6 +551,7 @@ Test(parser, func_with_return_pointer_type) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_eq(stmt->value.func->public, 0);
     cr_assert_eq(stmt->value.func->return_type->kind, TY_POINTER);
     cr_assert_eq(stmt->value.func->return_type->value.type->kind, TY_PATH);
     string_t* segment = vector_get(
@@ -528,6 +574,7 @@ Test(parser, func_with_return_type_with_parent) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_eq(stmt->value.func->public, 0);
     cr_assert_eq(stmt->value.func->return_type->kind, TY_PATH);
     string_t* segment = vector_get(
         stmt->value.func->return_type->value.path->segments,
@@ -549,6 +596,7 @@ Test(parser, func_with_return_1_tuple_type) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_eq(stmt->value.func->public, 0);
     cr_assert_eq(stmt->value.func->return_type->kind, TY_TUPLE);
     type_t* first_type = vector_get(
         stmt->value.func->return_type->value.tuple,
@@ -573,6 +621,7 @@ Test(parser, func_with_return_more_tuple_type) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_eq(stmt->value.func->public, 0);
     cr_assert_eq(stmt->value.func->return_type->kind, TY_TUPLE);
     type_t* first_type = vector_get(
         stmt->value.func->return_type->value.tuple,
@@ -605,6 +654,7 @@ Test(parser, func_with_1_argument) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_eq(stmt->value.func->public, 0);
     cr_assert_null(stmt->value.func->return_type);
 
     arg_expr_t* arg = vector_get(
@@ -629,6 +679,7 @@ Test(parser, func_with_more_arguments) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_FUNC_DEFINITION);
+    cr_assert_eq(stmt->value.func->public, 0);
     cr_assert_null(stmt->value.func->return_type);
 
     arg_expr_t* arg = vector_get(
