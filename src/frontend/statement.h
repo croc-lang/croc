@@ -21,6 +21,7 @@ typedef struct ModuleStmt {
 } module_stmt_t;
 
 typedef struct VarStmt {
+    bool public;
     bool constant;
     // if the type is NULL, the type is infer
     type_t* type;
@@ -29,6 +30,7 @@ typedef struct VarStmt {
 } var_stmt_t;
 
 typedef struct FuncStmt {
+    bool public;
     string_t* name;
     type_t* return_type;
     /*arg_expr_t*/vector_t* args;

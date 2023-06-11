@@ -484,6 +484,18 @@ stmt_t* parser_next(parser_t* self) {
         parser_eat(self, TK_SEMICOLON);
         stmt = parser_next(self);
         break;
+    case TK_KW_PUBLIC:
+        parser_eat(self, TK_KW_PUBLIC);
+        if (parser_check(self, TK_KW_FUNC)) {
+            stmt = parse_func(self);
+            stmt->value.func->public = true;
+        } else {
+            stmt = parse_var_declaration(
+                self,
+                parser_check(self, TK_KW_CONST));
+            stmt->value.var->public = true;
+        }
+        break;
     case TK_KW_IMPORT:
         stmt = parse_import(self);
         break;
@@ -494,11 +506,8 @@ stmt_t* parser_next(parser_t* self) {
         stmt = parse_func(self);
         break;
     case TK_KW_LET:
-        stmt = parse_var_declaration(self, false);
-        parser_eat(self, TK_SEMICOLON);
-        break;
     case TK_KW_CONST:
-        stmt = parse_var_declaration(self, true);
+        stmt = parse_var_declaration(self, parser_check(self, TK_KW_CONST));
         parser_eat(self, TK_SEMICOLON);
         break;
     case TK_KW_IF:
