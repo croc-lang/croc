@@ -49,6 +49,15 @@ inline static bool parser_checks(parser_t* self, size_t size, ...) {
     return false;
 }
 
+inline static bool parser_skip_if_exist(parser_t* self, token_kind_t kind) {
+    if (!parser_check(self, kind))
+        return false;
+
+    token_drop(self->current);
+    self->current = lexer_next_token(self->lexer);
+    return true;
+}
+
 inline static void parser_eat(parser_t* self, token_kind_t kind) {
     if (!parser_check(self, kind)) {
         context_add_error(self->context,
@@ -69,8 +78,7 @@ static path_type_t* parse_type_path(parser_t* self) {
     vector_push(segments, name);
     parser_eat(self, TK_IDENT);
 
-    while (parser_check(self, TK_DB_COLON)) {
-        parser_eat(self, TK_DB_COLON);
+    while (parser_skip_if_exist(self, TK_DB_COLON)) {
         name = token_get_value(self->current, "");
         parser_eat(self, TK_IDENT);
         vector_push(segments, name);
@@ -85,6 +93,49 @@ static arg_expr_t* parse_arg(parser_t* self) {
     parser_eat(self, TK_IDENT);
 
     return new_arg_expr(type, name);
+}
+
+static stmt_t* parse_module(parser_t* self) {
+    stmt_value_t value;
+    parser_eat(self, TK_KW_MODULE);
+
+    value.module = new_module_stmt(parse_type_path(self));
+    return new_stmt(STMT_MODULE, value);
+}
+
+static stmt_t* parse_import(parser_t* self) {
+    vector_t* imports = new_vector();
+    vector_t* import_objects;
+    string_t* move_to;
+    string_t* path;
+    stmt_value_t value;
+
+    parser_eat(self, TK_KW_IMPORT);
+    bool in_paren = parser_skip_if_exist(self, TK_LPAREN);
+    do {
+        import_objects = NULL;
+        move_to = NULL;
+        path = token_get_value(self->current, "");
+        parser_eat(self, TK_STRING);
+        if (parser_skip_if_exist(self, TK_KW_AS)) {
+            move_to = token_get_value(self->current, "");
+            parser_eat(self, TK_IDENT);
+        } else if (parser_skip_if_exist(self, TK_LBRACE)) {
+            import_objects = new_vector();
+            while (!parser_check(self, TK_RBRACE)) {
+                vector_push(import_objects, token_get_value(self->current, ""));
+                parser_eat(self, TK_IDENT);
+                if (!parser_skip_if_exist(self, TK_COMMA)) break;
+            }
+            parser_eat(self, TK_RBRACE);
+        }
+        vector_push(imports, new_import_stmt(path, move_to, import_objects));
+    } while (parser_skip_if_exist(self, TK_COMMA));
+
+    if (in_paren) parser_eat(self, TK_RPAREN);
+
+    value.imports = imports;
+    return new_stmt(STMT_IMPORTS, value);
 }
 
 static expr_t* parse_primary_expr(parser_t* self) {
@@ -116,14 +167,12 @@ static expr_t* parse_primary_expr(parser_t* self) {
     case TK_LPAREN:
         parser_eat(self, TK_LPAREN);
         expr = parse_expr(self);
-        if (parser_check(self, TK_COMMA)) {
+        if (parser_skip_if_exist(self, TK_COMMA)) {
             body = new_vector();
-            parser_eat(self, TK_COMMA);
             vector_push(body, expr);
             while (!parser_check(self, TK_RPAREN)) {
                 vector_push(body, parse_expr(self));
-                if (!parser_check(self, TK_COMMA)) break;
-                parser_eat(self, TK_COMMA);
+                if (!parser_skip_if_exist(self, TK_COMMA)) break;
             }
             value.list = body;
             expr = new_expr(EX_TUPLE, value);
@@ -135,8 +184,7 @@ static expr_t* parse_primary_expr(parser_t* self) {
         parser_eat(self, TK_LBRACKET);
         while (!parser_check(self, TK_RBRACKET)) {
             vector_push(body, parse_expr(self));
-            if (!parser_check(self, TK_COMMA)) break;
-                parser_eat(self, TK_COMMA);
+            if (!parser_skip_if_exist(self, TK_COMMA)) break;
         }
         parser_eat(self, TK_RBRACKET);
         value.list = body;
@@ -226,14 +274,12 @@ static expr_t* parse_primary_declaration_expr(parser_t* self) {
     case TK_LPAREN:
         parser_eat(self, TK_LPAREN);
         expr = parse_expr(self);
-        if (parser_check(self, TK_COMMA)) {
+        if (parser_skip_if_exist(self, TK_COMMA)) {
             body = new_vector();
-            parser_eat(self, TK_COMMA);
             vector_push(body, expr);
             while (!parser_check(self, TK_RPAREN)) {
                 vector_push(body, parse_expr(self));
-                if (!parser_check(self, TK_COMMA)) break;
-                parser_eat(self, TK_COMMA);
+                if (!parser_skip_if_exist(self, TK_COMMA)) break;
             }
             value.list = body;
             expr = new_expr(EX_TUPLE, value);
@@ -264,8 +310,7 @@ static stmt_t* parse_func(parser_t* self) {
     parser_eat(self, TK_LPAREN);
     while (!parser_check(self, TK_RPAREN)) {
         vector_push(args, parse_arg(self));
-        if (!parser_check(self, TK_COMMA)) break;
-        parser_eat(self, TK_COMMA);
+        if (!parser_skip_if_exist(self, TK_COMMA)) break;
     }
     parser_eat(self, TK_RPAREN);
 
@@ -276,8 +321,7 @@ static stmt_t* parse_func(parser_t* self) {
         stmt = parser_next(self);
         if (!stmt) break;
         vector_push(body, stmt);
-        if (!parser_check(self, TK_COMMA)) break;
-        parser_eat(self, TK_COMMA);
+        if (!parser_skip_if_exist(self, TK_COMMA)) break;
     }
     parser_eat(self, TK_RBRACE);
 
@@ -312,8 +356,8 @@ static else_branch_stmt_t* parse_else_branch(parser_t* self) {
         return new_else_branch_stmt(NULL, parse_if_branch(self));
 
     body = new_vector();
-    if (parser_check(self, TK_LBRACE)) {
-        parser_eat(self, TK_LBRACE);
+    if (parser_skip_if_exist(self, TK_LBRACE)) {
+        // FIXME(hana): infinity loop if EOF
         while (!parser_check(self, TK_RBRACE))
             vector_push(body, parser_next(self));
         parser_eat(self, TK_RBRACE);
@@ -334,6 +378,7 @@ static if_stmt_t* parse_if_branch(parser_t* self) {
 
     if (parser_check(self, TK_LBRACE)) {
         parser_eat(self, TK_LBRACE);
+        // FIXME(hana): infinity loop if EOF
         while (!parser_check(self, TK_RBRACE))
             vector_push(body, parser_next(self));
         parser_eat(self, TK_RBRACE);
@@ -357,14 +402,12 @@ static type_t* parse_type_tuple(parser_t* self) {
 
     parser_eat(self, TK_LPAREN);
     type = parse_type(self);
-    if (parser_check(self, TK_COMMA)) {
+    if (parser_skip_if_exist(self, TK_COMMA)) {
         body = new_vector();
-        parser_eat(self, TK_COMMA);
         vector_push(body, type);
         while (!parser_check(self, TK_RPAREN)) {
             vector_push(body, parse_type(self));
-            if (!parser_check(self, TK_COMMA)) break;
-            parser_eat(self, TK_COMMA);
+            if (!parser_skip_if_exist(self, TK_COMMA)) break;
         }
         value.tuple = body;
         type = new_type(TY_TUPLE, value);
@@ -384,12 +427,10 @@ type_t* parse_type(parser_t* self) {
     if (parser_check(self, TK_LPAREN)) type = parse_type_tuple(self);
     else {
         path_type_t* path = parse_type_path(self);
-        if (parser_check(self, TK_CMP_LT)) {
-            parser_eat(self, TK_CMP_LT);
+        if (parser_skip_if_exist(self, TK_CMP_LT)) {
             while (!parser_check(self, TK_CMP_GT)) {
                 vector_push(generics, parse_type(self));
-                if (!parser_check(self, TK_COMMA)) break;
-                parser_eat(self, TK_COMMA);
+                if (!parser_skip_if_exist(self, TK_COMMA)) break;
             }
             parser_eat(self, TK_CMP_GT);
 
@@ -439,6 +480,16 @@ stmt_t* parser_next(parser_t* self) {
 
     switch (self->current->kind) {
     case TK_EOF: break;
+    case TK_SEMICOLON:
+        parser_eat(self, TK_SEMICOLON);
+        stmt = parser_next(self);
+        break;
+    case TK_KW_IMPORT:
+        stmt = parse_import(self);
+        break;
+    case TK_KW_MODULE:
+        stmt = parse_module(self);
+        break;
     case TK_KW_FUNC:
         stmt = parse_func(self);
         break;

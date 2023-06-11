@@ -1,6 +1,36 @@
 #include <stdlib.h>
 #include "statement.h"
 
+import_stmt_t* new_import_stmt(
+    string_t* file_paths,
+    string_t* move_to,
+    /*string_t*/vector_t* imports
+) {
+    import_stmt_t* stmt = malloc(sizeof(import_stmt_t));
+    stmt->file_paths = file_paths;
+    stmt->move_to = move_to;
+    stmt->imports = imports;
+    return stmt;
+}
+
+void import_stmt_drop(import_stmt_t* self) {
+    string_drop(self->file_paths);
+    if (self->move_to != NULL) string_drop(self->move_to);
+    if (self->imports != NULL) vector_deeply_drop(self->imports, string_drop);
+    free(self);
+}
+
+module_stmt_t* new_module_stmt(path_type_t* path) {
+    module_stmt_t* stmt = malloc(sizeof(module_stmt_t));
+    stmt->path = path;
+    return stmt;
+}
+
+void module_stmt_drop(module_stmt_t* self) {
+    path_type_drop(self->path);
+    free(self);
+}
+
 var_stmt_t* new_var_stmt(
     bool constant,
     type_t* type,
@@ -91,6 +121,10 @@ stmt_t* new_stmt(stmt_kind_t kind, stmt_value_t value) {
 }
 
 void stmt_drop(stmt_t* self) {
+    if (self->kind == STMT_MODULE)
+        module_stmt_drop(self->value.module);
+    if (self->kind == STMT_IMPORTS)
+        vector_deeply_drop(self->value.imports, import_stmt_drop);
     if (self->kind == STMT_VAR_DECLARATION)
         var_stmt_drop(self->value.var);
     else if (self->kind == STMT_FUNC_DEFINITION)
