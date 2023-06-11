@@ -107,6 +107,36 @@ static token_t* lexing_ident(lexer_t* lexer, size_t start) {
         return new_token(TK_KW_CONST,
             NULL,
             new_location(line, col, start, lexer->i));
+    } else if (string_eq_str(ident, "for")) {
+        string_drop(ident);
+        return new_token(TK_KW_FOR,
+            NULL,
+            new_location(line, col, start, lexer->i));
+    } else if (string_eq_str(ident, "while")) {
+        string_drop(ident);
+        return new_token(TK_KW_WHILE,
+            NULL,
+            new_location(line, col, start, lexer->i));
+    } else if (string_eq_str(ident, "pub")) {
+        string_drop(ident);
+        return new_token(TK_KW_PUBLIC,
+            NULL,
+            new_location(line, col, start, lexer->i));
+    } else if (string_eq_str(ident, "import")) {
+        string_drop(ident);
+        return new_token(TK_KW_IMPORT,
+            NULL,
+            new_location(line, col, start, lexer->i));
+    } else if (string_eq_str(ident, "module")) {
+        string_drop(ident);
+        return new_token(TK_KW_MODULE,
+            NULL,
+            new_location(line, col, start, lexer->i));
+    } else if (string_eq_str(ident, "as")) {
+        string_drop(ident);
+        return new_token(TK_KW_AS,
+            NULL,
+            new_location(line, col, start, lexer->i));
     } else return new_token(TK_IDENT,
         ident,
         new_location(line, col, start, lexer->i));

@@ -9,6 +9,17 @@
 typedef struct Stmt stmt_t;
 typedef struct IfStmt if_stmt_t;
 
+typedef struct ImportStmt {
+    string_t* file_paths;
+    // move the content of the file into a specific module, if NULL, no move
+    string_t* move_to;
+    /*string_t*/vector_t* imports;
+} import_stmt_t;
+
+typedef struct ModuleStmt {
+    path_type_t* path;
+} module_stmt_t;
+
 typedef struct VarStmt {
     bool constant;
     // if the type is NULL, the type is infer
@@ -37,6 +48,8 @@ typedef struct IfStmt {
 } if_stmt_t;
 
 typedef enum StmtKind {
+    STMT_IMPORTS,
+    STMT_MODULE,
     STMT_VAR_DECLARATION,
     STMT_FUNC_DEFINITION,
     STMT_IF,
@@ -44,6 +57,10 @@ typedef enum StmtKind {
 } stmt_kind_t;
 
 typedef union StmtValue {
+    // STMT_IMPORTS
+    /*import_stmt_t*/vector_t* imports;
+    // STMT_MODULE
+    module_stmt_t* module;
     // STMT_VAR_DECLARATION
     var_stmt_t* var;
     // STMT_FUNC_DEFINITION
@@ -58,6 +75,16 @@ typedef struct Stmt {
     stmt_kind_t kind;
     stmt_value_t value;
 } stmt_t;
+
+import_stmt_t* new_import_stmt(
+    string_t* file_paths,
+    string_t* move_to,
+    /*string_t*/vector_t* imports
+);
+void import_stmt_drop(import_stmt_t* self);
+
+module_stmt_t* new_module_stmt(path_type_t* path);
+void module_stmt_drop(module_stmt_t* self);
 
 var_stmt_t* new_var_stmt(
     bool constant,

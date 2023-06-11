@@ -11,6 +11,12 @@ typedef enum TokenKind {
     TK_KW_ELSE,
     TK_KW_FUNC,
     TK_KW_CONST,
+    TK_KW_FOR,
+    TK_KW_WHILE,
+    TK_KW_PUBLIC,
+    TK_KW_IMPORT,
+    TK_KW_MODULE,
+    TK_KW_AS,
 
     TK_LPAREN,     // (
     TK_RPAREN,     // )

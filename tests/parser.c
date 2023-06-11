@@ -234,6 +234,20 @@ Test(parser, orders_of_precedence) {
     parser_drop(parser);
 }
 
+Test(parser, useless_semi_colon) {
+    lexer_t* lexer = new_lexer("test.cr", ";;;1;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_EXPR);
+    cr_assert_eq(stmt->value.expr->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(stmt->value.expr->value.value->data, "1");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
 Test(parser, if_only) {
     lexer_t* lexer = new_lexer("test.cr", "if (a) b;");
     parser_t* parser = new_parser(lexer);
@@ -635,6 +649,154 @@ Test(parser, func_with_more_arguments) {
 
     cr_assert_eq(stmt->value.func->body->len, 0);
     cr_assert_str_eq(stmt->value.func->name->data, "test");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, module) {
+    lexer_t* lexer = new_lexer("test.cr", "module test");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_MODULE);
+    cr_assert_eq(stmt->value.module->path->segments->len, 1);
+    string_t* segment = vector_get(stmt->value.module->path->segments, 0);
+    cr_assert_str_eq(segment->data, "test");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, long_module) {
+    lexer_t* lexer = new_lexer("test.cr", "module test::test2");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_MODULE);
+    string_t* segment = vector_get(stmt->value.module->path->segments, 0);
+    cr_assert_str_eq(segment->data, "test");
+    string_t* segment2 = vector_get(stmt->value.module->path->segments, 1);
+    cr_assert_str_eq(segment2->data, "test2");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, import_a_file) {
+    lexer_t* lexer = new_lexer("test.cr", "import \"./test2.cr\"");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_IMPORTS);
+    import_stmt_t* import = vector_get(stmt->value.imports, 0);
+    cr_assert_str_eq(import->file_paths->data, "./test2.cr");
+    cr_assert_null(import->move_to);
+    cr_assert_null(import->imports);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, import_multiple_files) {
+    lexer_t* lexer = new_lexer(
+        "test.cr",
+        "import \"./test2.cr\", \"./test3.cr\"");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_IMPORTS);
+    import_stmt_t* import = vector_get(stmt->value.imports, 0);
+    cr_assert_str_eq(import->file_paths->data, "./test2.cr");
+    cr_assert_null(import->move_to);
+    cr_assert_null(import->imports);
+
+    import_stmt_t* import2 = vector_get(stmt->value.imports, 1);
+    cr_assert_str_eq(import2->file_paths->data, "./test3.cr");
+    cr_assert_null(import2->move_to);
+    cr_assert_null(import2->imports);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, import_with_rename) {
+    lexer_t* lexer = new_lexer("test.cr", "import \"./test2.cr\" as test");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_IMPORTS);
+    import_stmt_t* import = vector_get(stmt->value.imports, 0);
+    cr_assert_str_eq(import->file_paths->data, "./test2.cr");
+    cr_assert_str_eq(import->move_to->data, "test");
+    cr_assert_null(import->imports);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, import_specific_object) {
+    lexer_t* lexer = new_lexer("test.cr", "import \"./test2.cr\" { test }");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_IMPORTS);
+    import_stmt_t* import = vector_get(stmt->value.imports, 0);
+    cr_assert_str_eq(import->file_paths->data, "./test2.cr");
+    string_t* object = vector_get(import->imports, 0);
+    cr_assert_str_eq(object->data, "test");
+    cr_assert_null(import->move_to);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, import_specific_many_objects) {
+    lexer_t* lexer = new_lexer(
+        "test.cr",
+        "import \"./test2.cr\" { test, test2 }");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_IMPORTS);
+    import_stmt_t* import = vector_get(stmt->value.imports, 0);
+    cr_assert_str_eq(import->file_paths->data, "./test2.cr");
+    string_t* object = vector_get(import->imports, 0);
+    cr_assert_str_eq(object->data, "test");
+    string_t* object2 = vector_get(import->imports, 1);
+    cr_assert_str_eq(object2->data, "test2");
+    cr_assert_null(import->move_to);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, imports_with_rename_and_publish_get) {
+    lexer_t* lexer = new_lexer(
+        "test.cr",
+        "import \"./test2.cr\" as test, \"./test3.cr\" { test4 }");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_IMPORTS);
+    import_stmt_t* import = vector_get(stmt->value.imports, 0);
+    cr_assert_str_eq(import->file_paths->data, "./test2.cr");
+    cr_assert_str_eq(import->move_to->data, "test");
+    cr_assert_null(import->imports);
+
+    import_stmt_t* import2 = vector_get(stmt->value.imports, 1);
+    cr_assert_str_eq(import2->file_paths->data, "./test3.cr");
+    string_t* object = vector_get(import2->imports, 0);
+    cr_assert_str_eq(object->data, "test4");
+    cr_assert_null(import2->move_to);
 
     stmt_drop(stmt);
     parser_drop(parser);
