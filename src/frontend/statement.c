@@ -95,6 +95,22 @@ void else_branch_stmt_drop(else_branch_stmt_t* self) {
     free(self);
 }
 
+while_stmt_t* new_while_stmt(
+    expr_t* condition,
+    /*stmt_t*/vector_t* body
+) {
+    while_stmt_t* stmt = malloc(sizeof(while_stmt_t));
+    stmt->condition = condition;
+    stmt->body = body;
+    return stmt;
+}
+
+void while_stmt_drop(while_stmt_t* self) {
+    vector_deeply_drop(self->body, stmt_drop);
+    expr_drop(self->condition);
+    free(self);
+}
+
 if_stmt_t* new_if_stmt(
     expr_t* condition,
     /*stmt_t*/vector_t* body,

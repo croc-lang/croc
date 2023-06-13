@@ -49,12 +49,18 @@ typedef struct IfStmt {
     else_branch_stmt_t* else_branch;
 } if_stmt_t;
 
+typedef struct WhileStmt {
+    expr_t* condition;
+    /*stmt_t*/vector_t* body;
+} while_stmt_t;
+
 typedef enum StmtKind {
     STMT_IMPORTS,
     STMT_MODULE,
     STMT_VAR_DECLARATION,
     STMT_FUNC_DEFINITION,
     STMT_IF,
+    STMT_WHILE,
     STMT_EXPR,
 } stmt_kind_t;
 
@@ -67,6 +73,8 @@ typedef union StmtValue {
     var_stmt_t* var;
     // STMT_FUNC_DEFINITION
     func_stmt_t* func;
+    // STMT_WHILE
+    while_stmt_t* while_stmt;
     // STMT_IF
     if_stmt_t* if_stmt;
     // STMT_EXPR
@@ -109,6 +117,12 @@ else_branch_stmt_t* new_else_branch_stmt(
     if_stmt_t* if_branch
 );
 void else_branch_stmt_drop(else_branch_stmt_t* self);
+
+while_stmt_t* new_while_stmt(
+    expr_t* condition,
+    /*stmt_t*/vector_t* body
+);
+void while_stmt_drop(while_stmt_t* self);
 
 if_stmt_t* new_if_stmt(
     expr_t* condition,
