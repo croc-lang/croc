@@ -248,6 +248,49 @@ Test(parser, useless_semi_colon) {
     parser_drop(parser);
 }
 
+Test(parser, while_only) {
+    lexer_t* lexer = new_lexer("test.cr", "while (a) b;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_WHILE);
+    cr_assert_eq(stmt->value.if_stmt->condition->kind, EX_IDENT);
+    cr_assert_str_eq(stmt->value.if_stmt->condition->value.value->data, "a");
+
+    stmt_t* stmt2 = vector_get(stmt->value.if_stmt->body, 0);
+    cr_assert_eq(stmt2->kind, STMT_EXPR);
+    cr_assert_eq(stmt2->value.expr->kind, EX_IDENT);
+    cr_assert_str_eq(stmt2->value.expr->value.value->data, "b");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, while_multi) {
+    lexer_t* lexer = new_lexer("test.cr", "while (a) {\nb;b2;\n}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_WHILE);
+    cr_assert_eq(stmt->value.if_stmt->condition->kind, EX_IDENT);
+    cr_assert_str_eq(stmt->value.if_stmt->condition->value.value->data, "a");
+
+    stmt_t* stmt2 = vector_get(stmt->value.if_stmt->body, 0);
+    cr_assert_eq(stmt2->kind, STMT_EXPR);
+    cr_assert_eq(stmt2->value.expr->kind, EX_IDENT);
+    cr_assert_str_eq(stmt2->value.expr->value.value->data, "b");
+
+    stmt_t* stmt3 = vector_get(stmt->value.if_stmt->body, 1);
+    cr_assert_eq(stmt3->kind, STMT_EXPR);
+    cr_assert_eq(stmt3->value.expr->kind, EX_IDENT);
+    cr_assert_str_eq(stmt3->value.expr->value.value->data, "b2");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
 Test(parser, if_only) {
     lexer_t* lexer = new_lexer("test.cr", "if (a) b;");
     parser_t* parser = new_parser(lexer);

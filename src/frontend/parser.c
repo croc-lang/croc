@@ -321,7 +321,6 @@ static stmt_t* parse_func(parser_t* self) {
         stmt = parser_next(self);
         if (!stmt) break;
         vector_push(body, stmt);
-        if (!parser_skip_if_exist(self, TK_COMMA)) break;
     }
     parser_eat(self, TK_RBRACE);
 
@@ -350,6 +349,7 @@ static stmt_t* parse_var_declaration(parser_t* self, bool constant) {
 
 static else_branch_stmt_t* parse_else_branch(parser_t* self) {
     vector_t* body = NULL;
+    stmt_t* stmt = NULL;
     parser_eat(self, TK_KW_ELSE);
 
     if (parser_check(self, TK_KW_IF))
@@ -357,9 +357,11 @@ static else_branch_stmt_t* parse_else_branch(parser_t* self) {
 
     body = new_vector();
     if (parser_skip_if_exist(self, TK_LBRACE)) {
-        // FIXME(hana): infinity loop if EOF
-        while (!parser_check(self, TK_RBRACE))
-            vector_push(body, parser_next(self));
+        while (!parser_check(self, TK_RBRACE)) {
+            stmt = parser_next(self);
+            if (!stmt) break;
+            vector_push(body, stmt);
+        }
         parser_eat(self, TK_RBRACE);
     } else vector_push(body, parser_next(self));
 
@@ -370,17 +372,19 @@ static if_stmt_t* parse_if_branch(parser_t* self) {
     vector_t* body = new_vector();
     else_branch_stmt_t* else_branch = NULL;
     expr_t* condition = NULL;
+    stmt_t* stmt = NULL;
 
     parser_eat(self, TK_KW_IF);
     parser_eat(self, TK_LPAREN);
     condition = parse_expr(self);
     parser_eat(self, TK_RPAREN);
 
-    if (parser_check(self, TK_LBRACE)) {
-        parser_eat(self, TK_LBRACE);
-        // FIXME(hana): infinity loop if EOF
-        while (!parser_check(self, TK_RBRACE))
-            vector_push(body, parser_next(self));
+    if (parser_skip_if_exist(self, TK_LBRACE)) {
+        while (!parser_check(self, TK_RBRACE)) {
+            stmt = parser_next(self);
+            if (!stmt) break;
+            vector_push(body, stmt);
+        }
         parser_eat(self, TK_RBRACE);
     } else vector_push(body, parser_next(self));
 
@@ -393,6 +397,30 @@ static if_stmt_t* parse_if_branch(parser_t* self) {
 static stmt_t* parse_if(parser_t* self) {
     stmt_value_t value = {.if_stmt = parse_if_branch(self)};
     return new_stmt(STMT_IF, value);
+}
+
+static while_stmt_t* parse_while(parser_t* self) {
+    vector_t* body = new_vector();
+    expr_t* condition = NULL;
+    stmt_t* stmt = NULL;
+    stmt_value_t value;
+
+    parser_eat(self, TK_KW_WHILE);
+    parser_eat(self, TK_LPAREN);
+    condition = parse_expr(self);
+    parser_eat(self, TK_RPAREN);
+
+    if (parser_skip_if_exist(self, TK_LBRACE)) {
+        while (!parser_check(self, TK_RBRACE)) {
+            stmt = parser_next(self);
+            if (!stmt) break;
+            vector_push(body, stmt);
+        }
+        parser_eat(self, TK_RBRACE);
+    } else vector_push(body, parser_next(self));
+
+    value.while_stmt = new_while_stmt(condition, body);
+    return new_stmt(STMT_WHILE, value);
 }
 
 static type_t* parse_type_tuple(parser_t* self) {
@@ -512,6 +540,9 @@ stmt_t* parser_next(parser_t* self) {
         break;
     case TK_KW_IF:
         stmt = parse_if(self);
+        break;
+    case TK_KW_WHILE:
+        stmt = parse_while(self);
         break;
     default:
         start_position = location_clone(self->current->location);
