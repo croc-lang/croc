@@ -517,7 +517,7 @@ static stmt_t* parse_for(parser_t* self) {
             lexer_goto_location(self->lexer, start_position);
             token_drop(parser_advence(self));
 
-            for_value.each = parse_loop_for(self, constant);
+            for_value.primary = parse_loop_for(self, constant);
             for_kind = FK_PRIMARY;
         }
     }

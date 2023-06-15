@@ -16,7 +16,8 @@ import_stmt_t* new_import_stmt(
 void import_stmt_drop(import_stmt_t* self) {
     string_drop(self->file_paths);
     if (self->move_to != NULL) string_drop(self->move_to);
-    if (self->imports != NULL) vector_deeply_drop(self->imports, string_drop);
+    if (self->imports != NULL)
+        vector_deeply_drop(self->imports, (void*)string_drop);
     free(self);
 }
 
@@ -72,8 +73,8 @@ void func_stmt_drop(func_stmt_t* self) {
     string_drop(self->name);
     if (self->return_type != NULL)
         type_drop(self->return_type);
-    vector_deeply_drop(self->args, arg_expr_drop);
-    vector_deeply_drop(self->body, stmt_drop);
+    vector_deeply_drop(self->args, (void*)arg_expr_drop);
+    vector_deeply_drop(self->body, (void*)stmt_drop);
     free(self);
 }
 
@@ -89,7 +90,7 @@ else_branch_stmt_t* new_else_branch_stmt(
 
 void else_branch_stmt_drop(else_branch_stmt_t* self) {
     if (self->body != NULL)
-        vector_deeply_drop(self->body, stmt_drop);
+        vector_deeply_drop(self->body, (void*)stmt_drop);
     else
         if_stmt_drop(self->if_branch);
     free(self);
@@ -106,7 +107,7 @@ while_stmt_t* new_while_stmt(
 }
 
 void while_stmt_drop(while_stmt_t* self) {
-    vector_deeply_drop(self->body, stmt_drop);
+    vector_deeply_drop(self->body, (void*)stmt_drop);
     expr_drop(self->condition);
     free(self);
 }
@@ -168,8 +169,8 @@ for_stmt_t* new_for_stmt(
 
 void for_stmt_drop(for_stmt_t* self) {
     if (self->kind == FK_PRIMARY) primary_for_drop(self->value.primary);
-    else if (self->kind == FK_EACH) expr_drop(self->value.each);
-    vector_deeply_drop(self->body, stmt_drop);
+    else if (self->kind == FK_EACH) each_for_drop(self->value.each);
+    vector_deeply_drop(self->body, (void*)stmt_drop);
     free(self);
 }
 
@@ -188,7 +189,7 @@ if_stmt_t* new_if_stmt(
 void if_stmt_drop(if_stmt_t* self) {
     if (self->else_branch != NULL)
         else_branch_stmt_drop(self->else_branch);
-    vector_deeply_drop(self->body, stmt_drop);
+    vector_deeply_drop(self->body, (void*)stmt_drop);
     expr_drop(self->condition);
     free(self);
 }
@@ -204,7 +205,7 @@ void stmt_drop(stmt_t* self) {
     if (self->kind == STMT_MODULE)
         module_stmt_drop(self->value.module);
     if (self->kind == STMT_IMPORTS)
-        vector_deeply_drop(self->value.imports, import_stmt_drop);
+        vector_deeply_drop(self->value.imports, (void*)import_stmt_drop);
     if (self->kind == STMT_VAR_DECLARATION)
         var_stmt_drop(self->value.var);
     else if (self->kind == STMT_FUNC_DEFINITION)

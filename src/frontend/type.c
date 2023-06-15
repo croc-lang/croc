@@ -8,7 +8,7 @@ path_type_t* new_path_type(/*string_t*/vector_t* segments) {
 }
 
 void path_type_drop(path_type_t* self) {
-    vector_deeply_drop(self->segments, string_drop);
+    vector_deeply_drop(self->segments, (void*)string_drop);
     free(self);
 }
 
@@ -24,7 +24,7 @@ generic_type_t* new_generic_type(
 
 void generic_type_drop(generic_type_t* self) {
     path_type_drop(self->path);
-    vector_deeply_drop(self->generics, type_drop);
+    vector_deeply_drop(self->generics, (void*)type_drop);
     free(self);
 }
 
