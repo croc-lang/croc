@@ -1,5 +1,5 @@
 #include <criterion/criterion.h>
-#include "../src/string_utils.h"
+#include <string_utils.h>
 
 Test(string, alloc_new_string) {
     string_t* str = new_string("Hello");

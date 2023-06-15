@@ -1,6 +1,6 @@
 #include <criterion/criterion.h>
-#include "../src/frontend/lexer.h"
-#include "../src/frontend/token.h"
+#include <frontend/lexer.h>
+#include <frontend/token.h>
 
 Test(lexer, normal_string) {
     lexer_t* lexer = new_lexer("test.cr", "\"I'm a string\"");

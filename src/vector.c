@@ -1,6 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
-#include "vector.h"
+#include <vector.h>
 
 vector_t* new_vector() {
     vector_t* vec = malloc(sizeof(vector_t));

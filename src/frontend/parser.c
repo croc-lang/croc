@@ -1,6 +1,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
-#include "parser.h"
+#include <frontend/parser.h>
 
 static else_branch_stmt_t* parse_else_branch(parser_t* self);
 static if_stmt_t* parse_if_branch(parser_t* self);

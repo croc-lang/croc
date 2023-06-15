@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "frontend/parser.h"
+#include <frontend/parser.h>
 
 int main(int argc, char** argv) {
     if (argc == 1) {
