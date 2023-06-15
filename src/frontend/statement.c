@@ -49,7 +49,7 @@ var_stmt_t* new_var_stmt(
 void var_stmt_drop(var_stmt_t* self) {
     if (self->type != NULL) type_drop(self->type);
     expr_drop(self->left);
-    expr_drop(self->right);
+    if (self->right != NULL) expr_drop(self->right);
     free(self);
 }
 
@@ -111,6 +111,68 @@ void while_stmt_drop(while_stmt_t* self) {
     free(self);
 }
 
+primary_for_t* new_primary_for(
+    for_init_value_t init,
+    for_init_kind_t init_kind,
+    expr_t* condition,
+    expr_t* updater
+) {
+    primary_for_t* stmt = malloc(sizeof(primary_for_t));
+    stmt->init = init;
+    stmt->init_kind = init_kind;
+    stmt->condition = condition;
+    stmt->updater = updater;
+    return stmt;
+}
+
+void primary_for_drop(primary_for_t* self) {
+    if (self->init_kind == FOR_INIT_DECLA) var_stmt_drop(self->init.decla);
+    else if (self->init_kind == FOR_INIT_EXPR) expr_drop(self->init.expr);
+    if (self->condition != NULL) expr_drop(self->condition);
+    if (self->updater != NULL) expr_drop(self->updater);
+    free(self);
+}
+
+each_for_t* new_each_for(
+    bool constant,
+    type_t* type,
+    expr_t* left,
+    expr_t* right
+) {
+    each_for_t* stmt = malloc(sizeof(each_for_t));
+    stmt->constant = constant;
+    stmt->type = type;
+    stmt->left = left;
+    stmt->right = right;
+    return stmt;
+}
+
+void each_for_drop(each_for_t* self) {
+    if (self->type != NULL) type_drop(self->type);
+    expr_drop(self->left);
+    expr_drop(self->right);
+    free(self);
+}
+
+for_stmt_t* new_for_stmt(
+    for_value_t value,
+    for_kind_t kind,
+    /*stmt_t*/vector_t* body
+) {
+    for_stmt_t* stmt = malloc(sizeof(for_stmt_t));
+    stmt->value = value;
+    stmt->kind = kind;
+    stmt->body = body;
+    return stmt;
+}
+
+void for_stmt_drop(for_stmt_t* self) {
+    if (self->kind == FK_PRIMARY) primary_for_drop(self->value.primary);
+    else if (self->kind == FK_EACH) expr_drop(self->value.each);
+    vector_deeply_drop(self->body, stmt_drop);
+    free(self);
+}
+
 if_stmt_t* new_if_stmt(
     expr_t* condition,
     /*stmt_t*/vector_t* body,
@@ -149,6 +211,10 @@ void stmt_drop(stmt_t* self) {
         func_stmt_drop(self->value.func);
     else if (self->kind == STMT_IF)
         if_stmt_drop(self->value.if_stmt);
+    else if (self->kind == STMT_WHILE)
+        while_stmt_drop(self->value.while_stmt);
+    else if (self->kind == STMT_FOR)
+        for_stmt_drop(self->value.for_stmt);
     else if (self->kind == STMT_EXPR)
         expr_drop(self->value.expr);
     free(self);

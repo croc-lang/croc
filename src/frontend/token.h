@@ -17,6 +17,7 @@ typedef enum TokenKind {
     TK_KW_IMPORT,
     TK_KW_MODULE,
     TK_KW_AS,
+    TK_KW_IN,
 
     TK_LPAREN,     // (
     TK_RPAREN,     // )

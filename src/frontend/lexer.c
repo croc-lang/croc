@@ -122,6 +122,11 @@ static token_t* lexing_ident(lexer_t* lexer, size_t start) {
         return new_token(TK_KW_PUBLIC,
             NULL,
             new_location(line, col, start, lexer->i));
+    } else if (string_eq_str(ident, "in")) {
+        string_drop(ident);
+        return new_token(TK_KW_IN,
+            NULL,
+            new_location(line, col, start, lexer->i));
     } else if (string_eq_str(ident, "import")) {
         string_drop(ident);
         return new_token(TK_KW_IMPORT,

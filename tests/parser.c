@@ -146,7 +146,7 @@ Test(parser, string_auto_concat) {
 }
 
 Test(parser, unary) {
-    const int const size = 7;
+    const int size = 7;
 
     expr_kind_t unaries[] = {
         EX_UNA_INCR,
@@ -415,6 +415,31 @@ Test(parser, var_with_type_declaration) {
 
     cr_assert_eq(stmt->value.var->right->kind, EX_INT_LITERAL);
     cr_assert_str_eq(stmt->value.var->right->value.value->data, "8");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, var_with_type_declaration_without_initial_value) {
+    lexer_t* lexer = new_lexer("test.cr", "int a;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 0);
+    cr_assert_eq(stmt->value.var->constant, false);
+
+    cr_assert_eq(stmt->value.var->type->kind, TY_PATH);
+    string_t* type_value = vector_get(
+        stmt->value.var->type->value.path->segments,
+        0);
+    cr_assert_str_eq(type_value->data, "int");
+
+    cr_assert_eq(stmt->value.var->left->kind, EX_IDENT);
+    cr_assert_str_eq(stmt->value.var->left->value.value->data, "a");
+
+    cr_assert_null(stmt->value.var->right);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -891,6 +916,143 @@ Test(parser, imports_with_rename_and_publish_get) {
     string_t* object = vector_get(import2->imports, 0);
     cr_assert_str_eq(object->data, "test4");
     cr_assert_null(import2->move_to);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, for_each) {
+    lexer_t* lexer = new_lexer("test.cr", "for (let a in []) {}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_FOR);
+    cr_assert_eq(stmt->value.for_stmt->body->len, 0);
+    cr_assert_eq(stmt->value.for_stmt->kind, FK_EACH);
+
+    cr_assert_eq(stmt->value.for_stmt->value.each->constant, false);
+    cr_assert_null(stmt->value.for_stmt->value.each->type);
+
+    cr_assert_eq(stmt->value.for_stmt->value.each->left->kind, EX_IDENT);
+    cr_assert_str_eq(
+        stmt->value.for_stmt->value.each->left->value.value->data,
+        "a");
+
+    cr_assert_eq(stmt->value.for_stmt->value.each->right->kind, EX_ARRAY);
+    cr_assert_eq(stmt->value.for_stmt->value.each->right->value.list->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, for_empty_primary) {
+    lexer_t* lexer = new_lexer("test.cr", "for (;;) {}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_FOR);
+    cr_assert_eq(stmt->value.for_stmt->body->len, 0);
+    cr_assert_eq(stmt->value.for_stmt->kind, FK_PRIMARY);
+
+    cr_assert_eq(stmt->value.for_stmt->value.primary->init_kind, FOR_INIT_NONE);
+    cr_assert_null(stmt->value.for_stmt->value.primary->condition);
+    cr_assert_null(stmt->value.for_stmt->value.primary->updater);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, for_primary) {
+    lexer_t* lexer = new_lexer("test.cr", "for (a; a; a) {}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_FOR);
+    cr_assert_eq(stmt->value.for_stmt->body->len, 0);
+    cr_assert_eq(stmt->value.for_stmt->kind, FK_PRIMARY);
+
+    cr_assert_eq(stmt->value.for_stmt->value.primary->init_kind, FOR_INIT_EXPR);
+    cr_assert_eq(
+        stmt->value.for_stmt->value.primary->init.expr->kind,
+        EX_IDENT);
+    cr_assert_str_eq(
+        stmt->value.for_stmt->value.primary->init.expr->value.value->data,
+        "a");
+
+    cr_assert_eq(
+        stmt->value.for_stmt->value.primary->condition->kind,
+        EX_IDENT);
+    cr_assert_str_eq(
+        stmt->value.for_stmt->value.primary->condition->value.value->data,
+        "a");
+
+    cr_assert_eq(stmt->value.for_stmt->value.primary->updater->kind, EX_IDENT);
+    cr_assert_str_eq(
+        stmt->value.for_stmt->value.primary->updater->value.value->data,
+        "a");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, for_primary_with_declaration) {
+    lexer_t* lexer = new_lexer("test.cr", "for (int a = 0; a; a) {}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_FOR);
+    cr_assert_eq(stmt->value.for_stmt->body->len, 0);
+    cr_assert_eq(stmt->value.for_stmt->kind, FK_PRIMARY);
+
+    cr_assert_eq(
+        stmt->value.for_stmt->value.primary->init_kind,
+        FOR_INIT_DECLA);
+
+    cr_assert_eq(stmt->value.for_stmt->value.primary->init.decla->public, 0);
+    cr_assert_eq(
+        stmt->value.for_stmt->value.primary->init.decla->constant,
+        false);
+
+    cr_assert_eq(
+        stmt->value.for_stmt->value.primary->init.decla->type->kind,
+        TY_PATH);
+    string_t* type_value = vector_get(
+        stmt->value.for_stmt->value.primary->
+            init.decla->type->value.path->segments,
+        0);
+    cr_assert_str_eq(type_value->data, "int");
+
+    cr_assert_eq(
+        stmt->value.for_stmt->value.primary->init.decla->left->kind,
+        EX_IDENT);
+    cr_assert_str_eq(
+        stmt->value.for_stmt->value.primary->
+            init.decla->left->value.value->data,
+        "a");
+
+    cr_assert_eq(
+        stmt->value.for_stmt->value.primary->init.decla->right->kind,
+        EX_INT_LITERAL);
+    cr_assert_str_eq(
+        stmt->value.for_stmt->value.primary->
+            init.decla->right->value.value->data,
+        "0");
+
+    cr_assert_eq(
+        stmt->value.for_stmt->value.primary->condition->kind,
+        EX_IDENT);
+    cr_assert_str_eq(
+        stmt->value.for_stmt->value.primary->condition->value.value->data,
+        "a");
+
+    cr_assert_eq(stmt->value.for_stmt->value.primary->updater->kind, EX_IDENT);
+    cr_assert_str_eq(
+        stmt->value.for_stmt->value.primary->updater->value.value->data,
+        "a");
 
     stmt_drop(stmt);
     parser_drop(parser);

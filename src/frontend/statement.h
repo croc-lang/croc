@@ -54,6 +54,49 @@ typedef struct WhileStmt {
     /*stmt_t*/vector_t* body;
 } while_stmt_t;
 
+typedef union ForInitValue {
+    var_stmt_t* decla;
+    expr_t* expr;
+} for_init_value_t;
+
+typedef enum ForInitKind {
+    FOR_INIT_DECLA,
+    FOR_INIT_EXPR,
+    FOR_INIT_NONE,
+} for_init_kind_t;
+
+typedef struct EachFor {
+    bool constant;
+    // if the type is NULL, the type is infer
+    type_t* type;
+    expr_t* left;
+    expr_t* right;
+} each_for_t;
+
+typedef struct PrimaryFor {
+    for_init_value_t init;
+    for_init_kind_t init_kind;
+    expr_t* condition;
+    expr_t* updater;
+} primary_for_t;
+
+typedef union ForValue {
+    each_for_t* each;
+    primary_for_t* primary;
+} for_value_t;
+
+typedef enum ForKind {
+    FK_EACH,
+    FK_PRIMARY,
+    FK_NONE,
+} for_kind_t;
+
+typedef struct ForStmt {
+    for_value_t value;
+    for_kind_t kind;
+    /*stmt_t*/vector_t* body;
+} for_stmt_t;
+
 typedef enum StmtKind {
     STMT_IMPORTS,
     STMT_MODULE,
@@ -61,6 +104,7 @@ typedef enum StmtKind {
     STMT_FUNC_DEFINITION,
     STMT_IF,
     STMT_WHILE,
+    STMT_FOR,
     STMT_EXPR,
 } stmt_kind_t;
 
@@ -75,6 +119,8 @@ typedef union StmtValue {
     func_stmt_t* func;
     // STMT_WHILE
     while_stmt_t* while_stmt;
+    // STMT_FOR
+    for_stmt_t* for_stmt;
     // STMT_IF
     if_stmt_t* if_stmt;
     // STMT_EXPR
@@ -123,6 +169,29 @@ while_stmt_t* new_while_stmt(
     /*stmt_t*/vector_t* body
 );
 void while_stmt_drop(while_stmt_t* self);
+
+primary_for_t* new_primary_for(
+    for_init_value_t init,
+    for_init_kind_t init_kind,
+    expr_t* condition,
+    expr_t* updater
+);
+void primary_for_drop(primary_for_t* self);
+
+each_for_t* new_each_for(
+    bool constant,
+    type_t* type,
+    expr_t* left,
+    expr_t* right
+);
+void each_for_drop(each_for_t* self);
+
+for_stmt_t* new_for_stmt(
+    for_value_t value,
+    for_kind_t kind,
+    /*stmt_t*/vector_t* body
+);
+void for_stmt_drop(for_stmt_t* self);
 
 if_stmt_t* new_if_stmt(
     expr_t* condition,
