@@ -77,7 +77,7 @@ static size_t lexer_backward(lexer_t* self) {
 }
 
 static token_t* lexing_ident(lexer_t* lexer, size_t start) {
-    size_t line, col = (lexer->line, lexer->col);
+    size_t line = lexer->line, col = lexer->col;
     while (isalnum(string_get(lexer->src, lexer_forward(lexer))));
 
     string_t* ident = string_slice(lexer->src, start, lexer_backward(lexer));
@@ -148,7 +148,7 @@ static token_t* lexing_ident(lexer_t* lexer, size_t start) {
 }
 
 static token_t* lexing_number(lexer_t* lexer, size_t start) {
-    size_t line, col, first_occ = (lexer->line, lexer->col, 0);
+    size_t line = lexer->line, col = lexer->col, first_occ = 0;
     token_kind_t kind = TK_INT;
     bool error = false;
     string_t* slice;
@@ -192,7 +192,7 @@ static token_t* lexing_number(lexer_t* lexer, size_t start) {
 }
 
 static token_t* lexing_string(lexer_t* lexer, size_t start) {
-    size_t line, col = (lexer->line, lexer->col);
+    size_t line = lexer->line, col = lexer->col;
     string_t* str = new_string("");
     char c;
 
@@ -242,7 +242,9 @@ token_t* lexer_next_token(lexer_t* self) {
     size_t line, col, start;
     char next_c, c;
     while ((c = string_get(self->src, lexer_forward(self))) > 0) {
-        line, col, start = (self->line, self->col, self->i - 1);
+        line = self->line;
+        col = self->col;
+        start = self->i - 1;
         next_c = string_get(self->src, self->i);
 
         if (!isascii(c)) {

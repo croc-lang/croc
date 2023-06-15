@@ -19,7 +19,7 @@ void error_drop(ctx_error_t* self) {
     free(self);
 }
 
-context_t* new_context() {
+context_t* new_context(void) {
     context_t* context = malloc(sizeof(context_t));
     context->errors = new_vector();
     return context;
@@ -36,6 +36,6 @@ void context_forget_errors(context_t* self, int number) {
 }
 
 void context_drop(context_t* self) {
-    vector_deeply_drop(self->errors, error_drop);
+    vector_deeply_drop(self->errors, (void*)error_drop);
     free(self);
 }
