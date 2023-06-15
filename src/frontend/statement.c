@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "statement.h"
+#include <frontend/statement.h>
 
 import_stmt_t* new_import_stmt(
     string_t* file_paths,

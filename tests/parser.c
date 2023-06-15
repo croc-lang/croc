@@ -1,5 +1,5 @@
 #include <criterion/criterion.h>
-#include "../src/frontend/parser.h"
+#include <frontend/parser.h>
 
 Test(parser, int) {
     lexer_t* lexer = new_lexer("test.cr", "1;");

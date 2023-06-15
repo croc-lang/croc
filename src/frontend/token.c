@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "token.h"
+#include <frontend/token.h>
 
 token_t* new_token(token_kind_t kind, string_t* value, location_t* location) {
     token_t* t = malloc(sizeof(token_t));

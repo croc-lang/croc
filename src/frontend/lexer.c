@@ -1,8 +1,8 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include "lexer.h"
-#include "../string_utils.h"
+#include <frontend/lexer.h>
+#include <string_utils.h>
 
 #define INC_AND_RETURN(lexer, kind) { \
     lexer_forward(lexer); \

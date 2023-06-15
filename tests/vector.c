@@ -1,6 +1,6 @@
 #include <criterion/criterion.h>
-#include "../src/string_utils.h"
-#include "../src/vector.h"
+#include <string_utils.h>
+#include <vector.h>
 
 Test(vector, alloc_new_vector) {
     vector_t* vector = new_vector();

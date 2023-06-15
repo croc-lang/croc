@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "type.h"
+#include <frontend/type.h>
 
 path_type_t* new_path_type(/*string_t*/vector_t* segments) {
     path_type_t* path = malloc(sizeof(path_type_t));
