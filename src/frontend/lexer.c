@@ -137,6 +137,11 @@ static token_t* lexing_ident(lexer_t* lexer, size_t start) {
         return new_token(TK_KW_MODULE,
             NULL,
             new_location(line, col, start, lexer->i));
+    } else if (string_eq_str(ident, "return")) {
+        string_drop(ident);
+        return new_token(TK_KW_RETURN,
+            NULL,
+            new_location(line, col, start, lexer->i));
     } else if (string_eq_str(ident, "as")) {
         string_drop(ident);
         return new_token(TK_KW_AS,
