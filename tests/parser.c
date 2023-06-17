@@ -11,6 +11,8 @@ Test(parser, int) {
     cr_assert_eq(stmt->value.expr->kind, EX_INT_LITERAL);
     cr_assert_str_eq(stmt->value.expr->value.value->data, "1");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -24,6 +26,8 @@ Test(parser, int_in_parent) {
     cr_assert_eq(stmt->kind, STMT_EXPR);
     cr_assert_eq(stmt->value.expr->kind, EX_INT_LITERAL);
     cr_assert_str_eq(stmt->value.expr->value.value->data, "1");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -42,6 +46,8 @@ Test(parser, tuple_with_1_element) {
     expr_t* one = vector_get(list, 0);
     cr_assert_eq(one->kind, EX_INT_LITERAL);
     cr_assert_str_eq(one->value.value->data, "1");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -69,6 +75,8 @@ Test(parser, tuple_with_more_elements) {
     cr_assert_eq(three->kind, EX_INT_LITERAL);
     cr_assert_str_eq(three->value.value->data, "3");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -82,6 +90,8 @@ Test(parser, array_with_no_element) {
     cr_assert_eq(stmt->kind, STMT_EXPR);
     cr_assert_eq(stmt->value.expr->kind, EX_ARRAY);
     cr_assert_eq(stmt->value.expr->value.list->len, 0);
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -100,6 +110,8 @@ Test(parser, array_with_1_element) {
     expr_t* one = vector_get(list, 0);
     cr_assert_eq(one->kind, EX_INT_LITERAL);
     cr_assert_str_eq(one->value.value->data, "1");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -127,6 +139,8 @@ Test(parser, array_with_more_elements) {
     cr_assert_eq(three->kind, EX_INT_LITERAL);
     cr_assert_str_eq(three->value.value->data, "3");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -140,6 +154,8 @@ Test(parser, string_auto_concat) {
     cr_assert_eq(stmt->kind, STMT_EXPR);
     cr_assert_eq(stmt->value.expr->kind, EX_STRING_LITERAL);
     cr_assert_str_eq(stmt->value.expr->value.value->data, "hello world");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -173,6 +189,8 @@ Test(parser, unary) {
 
         stmt_drop(stmt);
     }
+    cr_assert_eq(parser->context->errors->len, 0);
+
 
     parser_drop(parser);
 }
@@ -195,6 +213,8 @@ Test(parser, binary_add) {
     cr_assert_str_eq(
         stmt->value.expr->value.binary->right->value.value->data,
         "2");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -230,6 +250,8 @@ Test(parser, orders_of_precedence) {
         stmt->value.expr->value.binary->right->value.value->data,
         "2");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -243,6 +265,8 @@ Test(parser, useless_semi_colon) {
     cr_assert_eq(stmt->kind, STMT_EXPR);
     cr_assert_eq(stmt->value.expr->kind, EX_INT_LITERAL);
     cr_assert_str_eq(stmt->value.expr->value.value->data, "1");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -262,6 +286,8 @@ Test(parser, while_only) {
     cr_assert_eq(stmt2->kind, STMT_EXPR);
     cr_assert_eq(stmt2->value.expr->kind, EX_IDENT);
     cr_assert_str_eq(stmt2->value.expr->value.value->data, "b");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -287,6 +313,8 @@ Test(parser, while_multi) {
     cr_assert_eq(stmt3->value.expr->kind, EX_IDENT);
     cr_assert_str_eq(stmt3->value.expr->value.value->data, "b2");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -307,6 +335,8 @@ Test(parser, if_only) {
     cr_assert_str_eq(stmt2->value.expr->value.value->data, "b");
 
     cr_assert_null(stmt->value.if_stmt->else_branch);
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -332,6 +362,8 @@ Test(parser, if_with_else) {
     cr_assert_eq(stmt3->kind, STMT_EXPR);
     cr_assert_eq(stmt3->value.expr->kind, EX_IDENT);
     cr_assert_str_eq(stmt3->value.expr->value.value->data, "c");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -369,6 +401,8 @@ Test(parser, if_with_else_if) {
     cr_assert_eq(stmt4->value.expr->kind, EX_IDENT);
     cr_assert_str_eq(stmt4->value.expr->value.value->data, "d");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -389,6 +423,8 @@ Test(parser, var_declaration) {
 
     cr_assert_eq(stmt->value.var->right->kind, EX_INT_LITERAL);
     cr_assert_str_eq(stmt->value.var->right->value.value->data, "8");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -416,6 +452,8 @@ Test(parser, var_with_type_declaration) {
     cr_assert_eq(stmt->value.var->right->kind, EX_INT_LITERAL);
     cr_assert_str_eq(stmt->value.var->right->value.value->data, "8");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -440,6 +478,8 @@ Test(parser, var_with_type_declaration_without_initial_value) {
     cr_assert_str_eq(stmt->value.var->left->value.value->data, "a");
 
     cr_assert_null(stmt->value.var->right);
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -484,6 +524,8 @@ Test(parser, var_with_tuple_type_declaration) {
     cr_assert_eq(two->kind, EX_INT_LITERAL);
     cr_assert_str_eq(two->value.value->data, "4");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -504,6 +546,8 @@ Test(parser, const_with_let_declaration) {
 
     cr_assert_eq(stmt->value.var->right->kind, EX_INT_LITERAL);
     cr_assert_str_eq(stmt->value.var->right->value.value->data, "8");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -531,6 +575,8 @@ Test(parser, const_with_type_declaration) {
     cr_assert_eq(stmt->value.var->right->kind, EX_INT_LITERAL);
     cr_assert_str_eq(stmt->value.var->right->value.value->data, "8");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -552,6 +598,8 @@ Test(parser, public_var_declaration) {
     cr_assert_eq(stmt->value.var->right->kind, EX_INT_LITERAL);
     cr_assert_str_eq(stmt->value.var->right->value.value->data, "8");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -569,6 +617,8 @@ Test(parser, public_func_definition) {
     cr_assert_eq(stmt->value.func->body->len, 0);
     cr_assert_str_eq(stmt->value.func->name->data, "test");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -585,6 +635,8 @@ Test(parser, func_definition) {
     cr_assert_eq(stmt->value.func->args->len, 0);
     cr_assert_eq(stmt->value.func->body->len, 0);
     cr_assert_str_eq(stmt->value.func->name->data, "test");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -607,6 +659,8 @@ Test(parser, func_with_return_type) {
     cr_assert_eq(stmt->value.func->args->len, 0);
     cr_assert_eq(stmt->value.func->body->len, 0);
     cr_assert_str_eq(stmt->value.func->name->data, "test");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -631,6 +685,8 @@ Test(parser, func_with_return_pointer_type) {
     cr_assert_eq(stmt->value.func->body->len, 0);
     cr_assert_str_eq(stmt->value.func->name->data, "test");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -652,6 +708,8 @@ Test(parser, func_with_return_type_with_parent) {
     cr_assert_eq(stmt->value.func->args->len, 0);
     cr_assert_eq(stmt->value.func->body->len, 0);
     cr_assert_str_eq(stmt->value.func->name->data, "test");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -677,6 +735,8 @@ Test(parser, func_with_return_1_tuple_type) {
     cr_assert_eq(stmt->value.func->args->len, 0);
     cr_assert_eq(stmt->value.func->body->len, 0);
     cr_assert_str_eq(stmt->value.func->name->data, "test");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -711,6 +771,8 @@ Test(parser, func_with_return_more_tuple_type) {
     cr_assert_eq(stmt->value.func->body->len, 0);
     cr_assert_str_eq(stmt->value.func->name->data, "test");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -735,6 +797,8 @@ Test(parser, func_with_1_argument) {
 
     cr_assert_eq(stmt->value.func->body->len, 0);
     cr_assert_str_eq(stmt->value.func->name->data, "test");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -769,6 +833,8 @@ Test(parser, func_with_more_arguments) {
     cr_assert_eq(stmt->value.func->body->len, 0);
     cr_assert_str_eq(stmt->value.func->name->data, "test");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -783,6 +849,8 @@ Test(parser, module) {
     cr_assert_eq(stmt->value.module->path->segments->len, 1);
     string_t* segment = vector_get(stmt->value.module->path->segments, 0);
     cr_assert_str_eq(segment->data, "test");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -800,6 +868,8 @@ Test(parser, long_module) {
     string_t* segment2 = vector_get(stmt->value.module->path->segments, 1);
     cr_assert_str_eq(segment2->data, "test2");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -815,6 +885,8 @@ Test(parser, import_a_file) {
     cr_assert_str_eq(import->file_paths->data, "./test2.cr");
     cr_assert_null(import->move_to);
     cr_assert_null(import->imports);
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -839,6 +911,8 @@ Test(parser, import_multiple_files) {
     cr_assert_null(import2->move_to);
     cr_assert_null(import2->imports);
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -854,6 +928,8 @@ Test(parser, import_with_rename) {
     cr_assert_str_eq(import->file_paths->data, "./test2.cr");
     cr_assert_str_eq(import->move_to->data, "test");
     cr_assert_null(import->imports);
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -871,6 +947,8 @@ Test(parser, import_specific_object) {
     string_t* object = vector_get(import->imports, 0);
     cr_assert_str_eq(object->data, "test");
     cr_assert_null(import->move_to);
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -892,6 +970,8 @@ Test(parser, import_specific_many_objects) {
     string_t* object2 = vector_get(import->imports, 1);
     cr_assert_str_eq(object2->data, "test2");
     cr_assert_null(import->move_to);
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -916,6 +996,8 @@ Test(parser, imports_with_rename_and_publish_get) {
     string_t* object = vector_get(import2->imports, 0);
     cr_assert_str_eq(object->data, "test4");
     cr_assert_null(import2->move_to);
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -942,6 +1024,8 @@ Test(parser, for_each) {
     cr_assert_eq(stmt->value.for_stmt->value.each->right->kind, EX_ARRAY);
     cr_assert_eq(stmt->value.for_stmt->value.each->right->value.list->len, 0);
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -959,6 +1043,8 @@ Test(parser, for_empty_primary) {
     cr_assert_eq(stmt->value.for_stmt->value.primary->init_kind, FOR_INIT_NONE);
     cr_assert_null(stmt->value.for_stmt->value.primary->condition);
     cr_assert_null(stmt->value.for_stmt->value.primary->updater);
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -993,6 +1079,8 @@ Test(parser, for_primary) {
     cr_assert_str_eq(
         stmt->value.for_stmt->value.primary->updater->value.value->data,
         "a");
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
@@ -1054,6 +1142,8 @@ Test(parser, for_primary_with_declaration) {
         stmt->value.for_stmt->value.primary->updater->value.value->data,
         "a");
 
+    cr_assert_eq(parser->context->errors->len, 0);
+
     stmt_drop(stmt);
     parser_drop(parser);
 }
@@ -1067,6 +1157,23 @@ Test(parser, return) {
     cr_assert_eq(stmt->kind, STMT_RETURN);
     cr_assert_eq(stmt->value.expr->kind, EX_INT_LITERAL);
     cr_assert_str_eq(stmt->value.expr->value.value->data, "1");
+
+    cr_assert_eq(parser->context->errors->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, empty_return) {
+    lexer_t* lexer = new_lexer("test.cr", "return ;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_RETURN);
+    cr_assert_null(stmt->value.expr);
+
+    cr_assert_eq(parser->context->errors->len, 0);
 
     stmt_drop(stmt);
     parser_drop(parser);
