@@ -559,8 +559,12 @@ static type_t* parse_type_tuple(parser_t* self) {
 }
 
 static stmt_t* parse_return(parser_t* self) {
+    expr_t* expr = NULL;
+    stmt_value_t value;
+
     parser_eat(self, TK_KW_RETURN);
-    stmt_value_t value = {.expr = parse_expr(self)};
+    if (!parser_check(self, TK_SEMICOLON)) expr = parse_expr(self);
+    value.expr = expr;
     return new_stmt(STMT_RETURN, value);
 }
 

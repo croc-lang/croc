@@ -216,7 +216,9 @@ void stmt_drop(stmt_t* self) {
         while_stmt_drop(self->value.while_stmt);
     else if (self->kind == STMT_FOR)
         for_stmt_drop(self->value.for_stmt);
-    else if (self->kind == STMT_EXPR || self->kind == STMT_RETURN)
-        expr_drop(self->value.expr);
+    else if (
+        self->kind == STMT_EXPR ||
+        (self->kind == STMT_RETURN && self->value.expr != NULL))
+            expr_drop(self->value.expr);
     free(self);
 }
