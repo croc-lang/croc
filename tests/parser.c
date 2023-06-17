@@ -1057,3 +1057,17 @@ Test(parser, for_primary_with_declaration) {
     stmt_drop(stmt);
     parser_drop(parser);
 }
+
+Test(parser, return) {
+    lexer_t* lexer = new_lexer("test.cr", "return 1;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_RETURN);
+    cr_assert_eq(stmt->value.expr->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(stmt->value.expr->value.value->data, "1");
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}

@@ -16,6 +16,7 @@ typedef enum TokenKind {
     TK_KW_PUBLIC,
     TK_KW_IMPORT,
     TK_KW_MODULE,
+    TK_KW_RETURN,
     TK_KW_AS,
     TK_KW_IN,
 

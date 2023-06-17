@@ -558,6 +558,12 @@ static type_t* parse_type_tuple(parser_t* self) {
     return type;
 }
 
+static stmt_t* parse_return(parser_t* self) {
+    parser_eat(self, TK_KW_RETURN);
+    stmt_value_t value = {.expr = parse_expr(self)};
+    return new_stmt(STMT_RETURN, value);
+}
+
 type_t* parse_type(parser_t* self) {
     vector_t* generics = NULL;
     token_t* token = NULL;
@@ -634,6 +640,10 @@ stmt_t* parser_next(parser_t* self) {
             stmt = parse_var(self, parser_check(self, TK_KW_CONST));
             stmt->value.var->public = true;
         }
+        break;
+    case TK_KW_RETURN:
+        stmt = parse_return(self);
+        parser_eat(self, TK_SEMICOLON);
         break;
     case TK_KW_IMPORT:
         stmt = parse_import(self);

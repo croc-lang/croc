@@ -106,6 +106,7 @@ typedef enum StmtKind {
     STMT_WHILE,
     STMT_FOR,
     STMT_EXPR,
+    STMT_RETURN
 } stmt_kind_t;
 
 typedef union StmtValue {
@@ -123,7 +124,7 @@ typedef union StmtValue {
     for_stmt_t* for_stmt;
     // STMT_IF
     if_stmt_t* if_stmt;
-    // STMT_EXPR
+    // STMT_EXPR, STMT_RETURN
     expr_t* expr;
 } stmt_value_t;
 
