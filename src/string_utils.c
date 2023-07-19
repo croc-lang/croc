@@ -115,6 +115,10 @@ bool string_eq(string_t* self, string_t* str) {
     return strcmp(self->data, str->data) == 0;
 }
 
+bool string_offset_start_with(string_t* self, char* str, size_t offset) {
+    return strncmp(self->data + offset, str, strlen(str)) == 0;
+}
+
 /*
  * return new string_t object with the slice desired or NULL if an error
  * occured.
