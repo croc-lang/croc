@@ -111,6 +111,16 @@ Test(string, equality) {
     string_drop(str);
 }
 
+Test(string, start_with) {
+    string_t* str = new_string("Hello World!");
+
+    cr_assert(string_offset_start_with(str, "Hello", 0));
+    cr_assert(string_offset_start_with(str, "World", 6));
+    cr_assert_not(string_offset_start_with(str, "Hello", 6));
+
+    string_drop(str);
+}
+
 Test(string, clone) {
     string_t* str = new_string("Hello");
     string_t* str2 = string_clone(str);;

@@ -14,6 +14,7 @@ string_t* format_string(const char* str, ...);
 char string_get(string_t* self, size_t index);
 bool string_eq_str(string_t* self, char* str);
 bool string_eq(string_t* self, string_t* str);
+bool string_offset_start_with(string_t* self, char* str, size_t offset);
 
 string_t* string_slice(string_t* self, size_t start, size_t end);
 string_t* string_push(string_t* self, char* str2);
