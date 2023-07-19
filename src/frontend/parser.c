@@ -5,13 +5,13 @@
 static else_branch_stmt_t* parse_else_branch(parser_t* self);
 static if_stmt_t* parse_if_branch(parser_t* self);
 
-#define PARSE_OP_EXPR(name, calle, size, ...) \
+#define PARSE_OP_EXPR(name, calle, predicate, ...) \
 static expr_t* name(parser_t* self) { \
     expr_t* left = calle(self); \
     token_t* token = NULL; \
     expr_value_t value; \
     expr_kind_t op; \
-    while (parser_checks(self, size, __VA_ARGS__)) { \
+    while (predicate(self, __VA_ARGS__)) { \
         token = parser_advence(self); \
         op = from_token(token->kind); \
         value.binary = new_binary_expr(left, calle(self)); \
@@ -37,6 +37,14 @@ inline static token_t* parser_advence(parser_t* self) {
 
 inline static bool parser_check(parser_t* self, token_kind_t kind) {
     return self->current->kind == kind;
+}
+
+inline static bool parser_check_between(
+    parser_t* self,
+    token_kind_t start_kind,
+    token_kind_t end_kind
+) {
+    return self->current->kind >= start_kind && self->current->kind <= end_kind;
 }
 
 inline static bool parser_checks(parser_t* self, size_t size, ...) {
@@ -252,6 +260,7 @@ static expr_t* parse_unary_expr(parser_t* self) {
 PARSE_OP_EXPR(
     parse_multiplicative_expr,
     parse_unary_expr,
+    parser_checks,
     3,
     TK_STAR,
     TK_SLASH,
@@ -260,9 +269,17 @@ PARSE_OP_EXPR(
 PARSE_OP_EXPR(
     parse_additive_expr,
     parse_multiplicative_expr,
+    parser_checks,
     2,
     TK_PLUS,
     TK_MINUS
+)
+PARSE_OP_EXPR(
+    parse_assignment_expr,
+    parse_additive_expr,
+    parser_check_between,
+    TK_EQ,
+    TK_ASG_BIT_XOR
 )
 
 static expr_t* parse_primary_declaration_expr(parser_t* self) {
@@ -288,7 +305,7 @@ static expr_t* parse_primary_declaration_expr(parser_t* self) {
         break;
     default:
         value.value = token_get_value(self->current, "");
-        expr = new_expr(from_token(self->current->kind), value);
+        expr = new_expr(EX_IDENT, value);
         parser_eat(self, TK_IDENT);
     }
 
@@ -618,8 +635,8 @@ type_t* parse_type(parser_t* self) {
     return type;
 }
 
-expr_t* parse_expr(parser_t* self) {
-    return parse_additive_expr(self);
+inline expr_t* parse_expr(parser_t* self) {
+    return parse_assignment_expr(self);
 }
 
 stmt_t* parser_next(parser_t* self) {

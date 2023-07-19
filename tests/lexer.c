@@ -108,8 +108,10 @@ Test(lexer, operators) {
     const int size = 31;
 
     lexer_t* lexer = new_lexer("test.cr", "( ) { } [ ] , ; :: -> "
-                                          "+ - * / % | & ^ ! ~ ++ --"
-                                          "= == != < > <= >= << >> || &&");
+                                          "+ - * / % | & ^ ! ~ ++ -- "
+                                          "= == != < > <= >= << >> || && "
+                                          "<<= >>= &&= ||= "
+                                          "+= -= *= /= %= &= |= ^=");
 
     token_kind_t keywords[] = {
         TK_LPAREN,
@@ -145,6 +147,18 @@ Test(lexer, operators) {
         TK_BIT_SR,
         TK_BOOL_OR,
         TK_BOOL_AND,
+        TK_ASG_BIT_SL,
+        TK_ASG_BIT_SR,
+        TK_ASG_BOOL_AND,
+        TK_ASG_BOOL_OR,
+        TK_ASG_PLUS,
+        TK_ASG_MINUS,
+        TK_ASG_STAR,
+        TK_ASG_SLASH,
+        TK_ASG_PERCENT,
+        TK_ASG_BIT_AND,
+        TK_ASG_BIT_OR,
+        TK_ASG_BIT_XOR,
     };
 
     for (size_t i = 0; i < size; i++) {
