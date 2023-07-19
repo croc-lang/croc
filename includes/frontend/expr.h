@@ -16,7 +16,19 @@ typedef struct UnaryExpr {
 } unary_expr_t;
 
 typedef enum ExprKind {
-    EX_VAR_ASSIGN,
+    EX_ASSIGN,
+    EX_ASSIGN_BIT_SL,    // <<=
+    EX_ASSIGN_BIT_SR,    // >>=
+    EX_ASSIGN_BOOL_AND,  // &&=
+    EX_ASSIGN_BOOL_OR,   // ||=
+    EX_ASSIGN_PLUS,      // +=
+    EX_ASSIGN_MINUS,     // -=
+    EX_ASSIGN_STAR,      // *=
+    EX_ASSIGN_SLASH,     // /=
+    EX_ASSIGN_PERCENT,   // %=
+    EX_ASSIGN_BIT_AND,   // &=
+    EX_ASSIGN_BIT_OR,    // |=
+    EX_ASSIGN_BIT_XOR,   // ^=
 
     EX_BIN_ADD,
     EX_BIN_SUB,
@@ -43,7 +55,7 @@ typedef enum ExprKind {
 } expr_kind_t;
 
 typedef union ExprValue {
-    // EX_BIN_*, EX_VAR_ASSIGN
+    // EX_BIN_*, EX_ASSIGN_*, EX_ASSIGN
     binary_expr_t* binary;
 
     // EX_UNA_*

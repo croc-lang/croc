@@ -1,13 +1,81 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 #include <frontend/lexer.h>
 #include <string_utils.h>
 
-#define INC_AND_RETURN(lexer, kind) { \
-    lexer_forward(lexer); \
-    return new_token(kind, NULL, new_location(line, col, start, lexer->i)); \
-}
+typedef struct {
+    token_kind_t kind;
+    char* text;
+} hardcoded_token;
+
+static const hardcoded_token tokens[] = {
+        {TK_ASG_BIT_SL, "<<="},
+        {TK_ASG_BIT_SR, ">>="},
+        {TK_ASG_BOOL_AND, "&&="},
+        {TK_ASG_BOOL_OR, "||="},
+        {TK_CMP_EQ, "=="},
+        {TK_CMP_NE, "!="},
+        {TK_CMP_GE, ">="},
+        {TK_CMP_LE, "<="},
+        {TK_ASG_PLUS, "+="},
+        {TK_ASG_MINUS, "-="},
+        {TK_ASG_STAR, "*="},
+        {TK_ASG_SLASH, "/="},
+        {TK_ASG_PERCENT, "%="},
+        {TK_ASG_BIT_AND, "&="},
+        {TK_ASG_BIT_OR, "|="},
+        {TK_ASG_BIT_XOR, "^="},
+        {TK_BIT_SL, "<<"},
+        {TK_BIT_SR, ">>"},
+        {TK_BOOL_AND, "&&"},
+        {TK_BOOL_OR, "||"},
+        {TK_DB_COLON, "::"},
+        {TK_DECREMENT, "--"},
+        {TK_INCREMENT, "++"},
+        {TK_ARROW, "->"},
+        {TK_PLUS, "+"},
+        {TK_MINUS, "-"},
+        {TK_STAR, "*"},
+        {TK_SLASH, "/"},
+        {TK_PERCENT, "%"},
+        {TK_BIN_AND, "&"},
+        {TK_BIN_OR, "|"},
+        {TK_BIN_XOR, "^"},
+        {TK_EQ, "="},
+        {TK_BANG, "!"},
+        {TK_TILDE, "~"},
+        {TK_CMP_LT, "<"},
+        {TK_CMP_GT, ">"},
+        {TK_SEMICOLON, ";"},
+        {TK_COMMA, ","},
+        {TK_LPAREN, "("},
+        {TK_RPAREN, ")"},
+        {TK_LBRACE, "{"},
+        {TK_RBRACE, "}"},
+        {TK_LBRACKET, "["},
+        {TK_RBRACKET, "]"},
+};
+static const size_t tokens_count = sizeof(tokens) / sizeof(hardcoded_token);
+
+static const hardcoded_token keywords_tokens[] = {
+    {TK_KW_LET, "let"},
+    {TK_KW_IF, "if"},
+    {TK_KW_ELSE, "else"},
+    {TK_KW_FUNC, "func"},
+    {TK_KW_CONST, "const"},
+    {TK_KW_FOR, "for"},
+    {TK_KW_WHILE, "while"},
+    {TK_KW_PUBLIC, "pub"},
+    {TK_KW_IN, "in"},
+    {TK_KW_IMPORT, "import"},
+    {TK_KW_MODULE, "module"},
+    {TK_KW_RETURN, "return"},
+    {TK_KW_AS, "as"},
+};
+static const size_t keywords_tokens_count =
+    sizeof(keywords_tokens) / sizeof(hardcoded_token);
 
 lexer_t* from_file_lexer(char* path) {
     lexer_t* lexer = calloc(sizeof(lexer_t), 1);
@@ -82,72 +150,16 @@ static token_t* lexing_ident(lexer_t* lexer, size_t start) {
 
     string_t* ident = string_slice(lexer->src, start, lexer_backward(lexer));
 
-    if (string_eq_str(ident, "let")) {
-        string_drop(ident);
-        return new_token(TK_KW_LET,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else if (string_eq_str(ident, "if")) {
-        string_drop(ident);
-        return new_token(TK_KW_IF,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else if (string_eq_str(ident, "else")) {
-        string_drop(ident);
-        return new_token(TK_KW_ELSE,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else if (string_eq_str(ident, "func")) {
-        string_drop(ident);
-        return new_token(TK_KW_FUNC,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else if (string_eq_str(ident, "const")) {
-        string_drop(ident);
-        return new_token(TK_KW_CONST,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else if (string_eq_str(ident, "for")) {
-        string_drop(ident);
-        return new_token(TK_KW_FOR,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else if (string_eq_str(ident, "while")) {
-        string_drop(ident);
-        return new_token(TK_KW_WHILE,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else if (string_eq_str(ident, "pub")) {
-        string_drop(ident);
-        return new_token(TK_KW_PUBLIC,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else if (string_eq_str(ident, "in")) {
-        string_drop(ident);
-        return new_token(TK_KW_IN,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else if (string_eq_str(ident, "import")) {
-        string_drop(ident);
-        return new_token(TK_KW_IMPORT,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else if (string_eq_str(ident, "module")) {
-        string_drop(ident);
-        return new_token(TK_KW_MODULE,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else if (string_eq_str(ident, "return")) {
-        string_drop(ident);
-        return new_token(TK_KW_RETURN,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else if (string_eq_str(ident, "as")) {
-        string_drop(ident);
-        return new_token(TK_KW_AS,
-            NULL,
-            new_location(line, col, start, lexer->i));
-    } else return new_token(TK_IDENT,
+    for (size_t i = 0; i < keywords_tokens_count; i++) {
+        if (string_eq_str(ident, keywords_tokens[i].text)) {
+            string_drop(ident);
+            return new_token(keywords_tokens[i].kind,
+                NULL,
+                new_location(line, col, start, lexer->i));
+        }
+    }
+
+    return new_token(TK_IDENT,
         ident,
         new_location(line, col, start, lexer->i));
 }
@@ -245,12 +257,12 @@ static token_t* lexing_string(lexer_t* lexer, size_t start) {
 
 token_t* lexer_next_token(lexer_t* self) {
     size_t line, col, start;
-    char next_c, c;
+    size_t incrementor;
+    char c;
     while ((c = string_get(self->src, lexer_forward(self))) > 0) {
         line = self->line;
         col = self->col;
         start = self->i - 1;
-        next_c = string_get(self->src, self->i);
 
         if (!isascii(c)) {
             while (!isascii(string_get(self->src, lexer_forward(self))));
@@ -267,107 +279,23 @@ token_t* lexer_next_token(lexer_t* self) {
         else if (isdigit(c)) return lexing_number(self, self->i - 1);
         else if (isalpha(c)) return lexing_ident(self, self->i - 1);
         else if (c == '"') return lexing_string(self, self->i - 1);
-        else if (c == '/' && next_c == '/') {
+        else if (string_offset_start_with(self->src, "//", start)) {
             do { c = string_get(self->src, lexer_forward(self)); }
             while (c != -1 && c != '\n');
             continue;
-        } else if (next_c == '=') {
-            lexer_forward(self);
-            switch (c) {
-            case '=': return new_token(TK_CMP_EQ,
-                NULL,
-                new_location(line, col, start, self->i));
-            case '!': return new_token(TK_CMP_NE,
-                NULL,
-                new_location(line, col, start, self->i));
-            case '>': return new_token(TK_CMP_GE,
-                NULL,
-                new_location(line, col, start, self->i));
-            case '<': return new_token(TK_CMP_LE,
-                NULL,
-                new_location(line, col, start, self->i));
-            // TODO(hana) += -= ...
-            default: context_add_error(self->context,
-                new_error(CTX_ERR_INVALID_TOKEN,
-                    format_string("the token `%c=` was invalid", c),
-                    new_location(line, col, start, self->i)));
+        }
+
+        for (size_t i = 0; i < tokens_count; i++) {
+            if (string_offset_start_with(self->src, tokens[i].text, start)) {
+                incrementor = strlen(tokens[i].text) - 1;
+                self->i += incrementor;
+                self->prev_col = self->col;
+                self->col += incrementor;
+                return new_token(
+                    tokens[i].kind,
+                    NULL,
+                    new_location(line, col, start, self->i));
             }
-        } else if (c == '<' && next_c == '<') INC_AND_RETURN(self, TK_BIT_SL)
-        else if (c == '>' && next_c == '>') INC_AND_RETURN(self, TK_BIT_SR)
-        else if (c == '&' && next_c == '&') INC_AND_RETURN(self, TK_BOOL_AND)
-        else if (c == '|' && next_c == '|') INC_AND_RETURN(self, TK_BOOL_OR)
-        else if (c == ':' && next_c == ':') INC_AND_RETURN(self, TK_DB_COLON)
-        else if (c == '-' && next_c == '-') INC_AND_RETURN(self, TK_DECREMENT)
-        else if (c == '+' && next_c == '+') INC_AND_RETURN(self, TK_INCREMENT)
-        else if (c == '-' && next_c == '>') INC_AND_RETURN(self, TK_ARROW)
-        else if (c == '+') return new_token(TK_PLUS,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '-') return new_token(TK_MINUS,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '*') return new_token(TK_STAR,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '/') return new_token(TK_SLASH,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '%') return new_token(TK_PERCENT,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '&') return new_token(TK_BIN_AND,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '|') return new_token(TK_BIN_OR,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '^') return new_token(TK_BIN_XOR,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '=') return new_token(TK_EQ,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '!') return new_token(TK_BANG,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '~') return new_token(TK_TILDE,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '<') return new_token(TK_CMP_LT,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '>') return new_token(TK_CMP_GT,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == ';') return new_token(TK_SEMICOLON,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == ',') return new_token(TK_COMMA,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '(') return new_token(TK_LPAREN,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == ')') return new_token(TK_RPAREN,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '{') return new_token(TK_LBRACE,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '}') return new_token(TK_RBRACE,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == '[') return new_token(TK_LBRACKET,
-            NULL,
-            new_location(line, col, start, self->i));
-        else if (c == ']') return new_token(TK_RBRACKET,
-            NULL,
-            new_location(line, col, start, self->i));
-        else {
-            context_add_error(self->context,
-                new_error(CTX_ERR_INVALID_CHAR,
-                    format_string("the character '%c' was invalid", c),
-                    new_location(line, col, start, self->i)));
         }
     }
 

@@ -46,7 +46,7 @@ expr_t* new_expr(expr_kind_t kind, expr_value_t value) {
 }
 
 void expr_drop(expr_t* self) {
-    if (self->kind >= EX_VAR_ASSIGN && self->kind <= EX_BIN_MOD)
+    if (self->kind >= EX_ASSIGN && self->kind <= EX_BIN_MOD)
         binary_expr_drop(self->value.binary);
     else if (self->kind >= EX_UNA_SUFFIX_INCR && self->kind <= EX_UNA_NEG)
         unary_expr_drop(self->value.unary);
@@ -69,6 +69,20 @@ expr_kind_t from_token(token_kind_t kind) {
     case TK_STRING: return EX_STRING_LITERAL;
     case TK_INT: return EX_INT_LITERAL;
     case TK_FLOAT: return EX_FLOAT_LITERAL;
+
+    case TK_EQ: return EX_ASSIGN;
+    case TK_ASG_BIT_SL: return EX_ASSIGN_BIT_SL;
+    case TK_ASG_BIT_SR: return EX_ASSIGN_BIT_SR;
+    case TK_ASG_BOOL_AND: return EX_ASSIGN_BOOL_AND;
+    case TK_ASG_BOOL_OR: return EX_ASSIGN_BOOL_OR;
+    case TK_ASG_PLUS: return EX_ASSIGN_PLUS;
+    case TK_ASG_MINUS: return EX_ASSIGN_MINUS;
+    case TK_ASG_STAR: return EX_ASSIGN_STAR;
+    case TK_ASG_SLASH: return EX_ASSIGN_SLASH;
+    case TK_ASG_PERCENT: return EX_ASSIGN_PERCENT;
+    case TK_ASG_BIT_AND: return EX_ASSIGN_BIT_AND;
+    case TK_ASG_BIT_OR: return EX_ASSIGN_BIT_OR;
+    case TK_ASG_BIT_XOR: return EX_ASSIGN_BIT_XOR;
 
     default: return EX_NONE;
     }

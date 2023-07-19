@@ -256,6 +256,78 @@ Test(parser, orders_of_precedence) {
     parser_drop(parser);
 }
 
+Test(parser, orders_of_precedence_with_assignment) {
+    lexer_t* lexer = new_lexer("test.cr", "a = 3 * 1 + 2;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_EXPR);
+    cr_assert_eq(stmt->value.expr->kind, EX_ASSIGN);
+
+    cr_assert_eq(stmt->value.expr->value.binary->left->kind, EX_IDENT);
+    cr_assert_str_eq(
+        stmt->value.expr->value.binary->left->value.value->data,
+        "a");
+
+    cr_assert_eq(stmt->value.expr->value.binary->right->kind, EX_BIN_ADD);
+    cr_assert_eq(
+        stmt->value.expr->value.binary->right->value.binary->left->kind,
+        EX_BIN_MUL);
+    cr_assert_eq(
+        stmt->value.expr->value.binary->
+            right->value.binary->left->value.binary->left->kind,
+        EX_INT_LITERAL);
+    cr_assert_str_eq(
+        stmt->value.expr->value.binary->
+            right->value.binary->left->value.binary->left->value.value->data,
+        "3");
+    cr_assert_eq(
+        stmt->value.expr->value.binary->
+            right->value.binary->left->value.binary->right->kind,
+        EX_INT_LITERAL);
+    cr_assert_str_eq(
+        stmt->value.expr->value.binary->
+            right->value.binary->left->value.binary->right->value.value->data,
+        "1");
+    cr_assert_eq(
+        stmt->value.expr->value.binary->
+            right->value.binary->right->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(
+        stmt->value.expr->value.binary->
+            right->value.binary->right->value.value->data, "2");
+
+    cr_assert_eq(parser->context->errors->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, extra_assign) {
+    lexer_t* lexer = new_lexer("test.cr", "a += 3;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_EXPR);
+    cr_assert_eq(stmt->value.expr->kind, EX_ASSIGN_PLUS);
+
+    cr_assert_eq(stmt->value.expr->value.binary->left->kind, EX_IDENT);
+    cr_assert_str_eq(
+        stmt->value.expr->value.binary->left->value.value->data,
+        "a");
+
+    cr_assert_eq(stmt->value.expr->value.binary->right->kind, EX_INT_LITERAL);
+    cr_assert_str_eq(
+        stmt->value.expr->value.binary->right->value.value->data,
+        "3");
+
+    cr_assert_eq(parser->context->errors->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
 Test(parser, useless_semi_colon) {
     lexer_t* lexer = new_lexer("test.cr", ";;;1;");
     parser_t* parser = new_parser(lexer);
