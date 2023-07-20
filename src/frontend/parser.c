@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <frontend/parser.h>
+#include <utils.h>
 
 static else_branch_stmt_t* parse_else_branch(parser_t* self);
 static if_stmt_t* parse_if_branch(parser_t* self);
@@ -198,6 +199,7 @@ static expr_t* parse_primary_expr(parser_t* self) {
         value.list = body;
         expr = new_expr(EX_ARRAY, value);
         break;
+    default: unreachable();
     }
 
     return expr;
@@ -234,6 +236,7 @@ static expr_t* parse_unary_expr(parser_t* self) {
         case TK_DECREMENT:
             kind = EX_UNA_DECR;
             break;
+        default: unreachable();
         }
         token_drop(token);
         return new_expr(kind, value);
@@ -244,12 +247,13 @@ static expr_t* parse_unary_expr(parser_t* self) {
         token = parser_advence(self);
         value.unary = new_unary_expr(expr);
         switch (token->kind) {
-            case TK_INCREMENT:
-                kind = EX_UNA_SUFFIX_INCR;
-                break;
-            case TK_DECREMENT:
-                kind = EX_UNA_SUFFIX_DECR;
-                break;
+        case TK_INCREMENT:
+            kind = EX_UNA_SUFFIX_INCR;
+            break;
+        case TK_DECREMENT:
+            kind = EX_UNA_SUFFIX_DECR;
+            break;
+        default: unreachable();
         }
         token_drop(token);
         expr = new_expr(kind, value);
@@ -458,7 +462,7 @@ static primary_for_t* parse_loop_for(parser_t* self, bool constant) {
     for_init_kind_t init_kind = FOR_INIT_NONE;
     expr_t* condition = NULL;
     expr_t* updater = NULL;
-    for_init_value_t init;
+    for_init_value_t init = {0};
 
     size_t errors_len = self->context->errors->len;
     location_t* start_position = NULL;
@@ -627,6 +631,7 @@ type_t* parse_type(parser_t* self) {
             value.type = type;
             kind = TY_SLICE;
             break;
+        default: unreachable();
         }
         token_drop(token);
         type = new_type(kind, value);
@@ -642,7 +647,6 @@ inline expr_t* parse_expr(parser_t* self) {
 stmt_t* parser_next(parser_t* self) {
     size_t errors_len = self->context->errors->len;
     location_t* start_position = NULL;
-    token_t* token = NULL;
     stmt_t* stmt = NULL;
     stmt_value_t value;
 
