@@ -19,6 +19,7 @@ typedef enum TokenKind {
     TK_KW_RETURN,
     TK_KW_AS,
     TK_KW_IN,
+    TK_KW_STRUCT,
 
     TK_LPAREN,        // (
     TK_RPAREN,        // )

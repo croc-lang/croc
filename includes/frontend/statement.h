@@ -9,6 +9,17 @@
 typedef struct Stmt stmt_t;
 typedef struct IfStmt if_stmt_t;
 
+typedef struct StructStmt {
+    string_t* name;
+    /*struct_property_t*/vector_t* properties;
+} struct_stmt_t;
+
+typedef struct StructProperty {
+    bool public;
+    type_t* type;
+    string_t* name;
+} struct_property_t;
+
 typedef struct ImportStmt {
     string_t* file_paths;
     // move the content of the file into a specific module, if NULL, no move
@@ -105,6 +116,7 @@ typedef enum StmtKind {
     STMT_IF,
     STMT_WHILE,
     STMT_FOR,
+    STMT_STRUCT,
     STMT_EXPR,
     STMT_RETURN
 } stmt_kind_t;
@@ -124,6 +136,8 @@ typedef union StmtValue {
     for_stmt_t* for_stmt;
     // STMT_IF
     if_stmt_t* if_stmt;
+    // STMT_STRUCT
+    struct_stmt_t* struct_stmt;
     // STMT_EXPR, STMT_RETURN
     expr_t* expr;
 } stmt_value_t;
@@ -132,6 +146,13 @@ typedef struct Stmt {
     stmt_kind_t kind;
     stmt_value_t value;
 } stmt_t;
+
+struct_property_t* new_struct_property(
+    bool public,
+    type_t* type,
+    string_t* name
+);
+void struct_property_drop(struct_property_t* self);
 
 import_stmt_t* new_import_stmt(
     string_t* file_paths,
@@ -200,6 +221,12 @@ if_stmt_t* new_if_stmt(
     else_branch_stmt_t* else_branch
 );
 void if_stmt_drop(if_stmt_t* self);
+
+struct_stmt_t* new_struct_stmt(
+    string_t* name,
+    /*struct_property_t*/vector_t* properties
+);
+void struct_stmt_drop(struct_stmt_t* self);
 
 stmt_t* new_stmt(stmt_kind_t kind, stmt_value_t value);
 void stmt_drop(stmt_t* self);

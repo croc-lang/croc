@@ -1,6 +1,24 @@
 #include <stdlib.h>
 #include <frontend/statement.h>
 
+struct_property_t* new_struct_property(
+    bool public,
+    type_t* type,
+    string_t* name
+) {
+    struct_property_t* property = malloc(sizeof(struct_property_t));
+    property->public = public;
+    property->type = type;
+    property->name = name;
+    return property;
+}
+
+void struct_property_drop(struct_property_t* self) {
+    string_drop(self->name);
+    type_drop(self->type);
+    free(self);
+}
+
 import_stmt_t* new_import_stmt(
     string_t* file_paths,
     string_t* move_to,
@@ -194,6 +212,23 @@ void if_stmt_drop(if_stmt_t* self) {
     free(self);
 }
 
+struct_stmt_t* new_struct_stmt(
+    string_t* name,
+    /*struct_property_t*/vector_t* properties
+) {
+    struct_stmt_t* stmt = malloc(sizeof(struct_stmt_t));
+    stmt->name = name;
+    stmt->properties = properties;
+    return stmt;
+}
+
+void struct_stmt_drop(struct_stmt_t* self) {
+    string_drop(self->name);
+    if (self->properties != NULL)
+        vector_deeply_drop(self->properties, (void*)struct_property_drop);
+    free(self);
+}
+
 stmt_t* new_stmt(stmt_kind_t kind, stmt_value_t value) {
     stmt_t* stmt = malloc(sizeof(stmt_t));
     stmt->kind = kind;
@@ -216,6 +251,8 @@ void stmt_drop(stmt_t* self) {
         while_stmt_drop(self->value.while_stmt);
     else if (self->kind == STMT_FOR)
         for_stmt_drop(self->value.for_stmt);
+    else if (self->kind == STMT_STRUCT)
+        struct_stmt_drop(self->value.struct_stmt);
     else if (
         self->kind == STMT_EXPR ||
         (self->kind == STMT_RETURN && self->value.expr != NULL))

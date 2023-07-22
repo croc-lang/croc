@@ -589,6 +589,38 @@ static stmt_t* parse_return(parser_t* self) {
     return new_stmt(STMT_RETURN, value);
 }
 
+static struct_property_t* parse_property(parser_t* self) {
+    bool public = parser_skip_if_exist(self, TK_KW_PUBLIC);
+    type_t* type = parse_type(self);
+    string_t* name = token_get_value(self->current, "");
+    parser_eat(self, TK_IDENT);
+
+    return new_struct_property(public, type, name);
+}
+
+static stmt_t* parse_struct(parser_t* self) {
+    vector_t* properties = NULL;
+    string_t* name = NULL;
+    stmt_value_t value;
+
+    parser_eat(self, TK_KW_STRUCT);
+    name = token_get_value(self->current, "");
+    parser_eat(self, TK_IDENT);
+
+    if (!parser_check(self, TK_SEMICOLON)) {
+        properties = new_vector();
+        parser_eat(self, TK_LBRACE);
+        while (!parser_check(self, TK_RBRACE)) {
+            vector_push(properties, parse_property(self));
+            if (!parser_skip_if_exist(self, TK_SEMICOLON)) break;
+        }
+    }
+
+    value.struct_stmt = new_struct_stmt(name, properties);
+
+    return new_stmt(STMT_STRUCT, value);
+}
+
 type_t* parse_type(parser_t* self) {
     vector_t* generics = NULL;
     token_t* token = NULL;
@@ -699,6 +731,8 @@ stmt_t* parser_next(parser_t* self) {
     case TK_KW_FOR:
         stmt = parse_for(self);
         break;
+    case TK_KW_STRUCT:
+        stmt = parse_struct(self);
     default:
         start_position = location_clone(self->current->location);
         if (parser_check(self, TK_IDENT) || parser_check(self, TK_LPAREN)) {
