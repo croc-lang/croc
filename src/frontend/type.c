@@ -28,18 +28,18 @@ void generic_type_drop(generic_type_t* self) {
     free(self);
 }
 
-// array_type_t* new_array_type(type_t* type, expr_t* size) {
-//     array_type_t* array = malloc(sizeof(array_type_t));
-//     array->type = type;
-//     array->size = size;
-//     return array;
-// }
+array_type_t* new_array_type(type_t* type, expr_t* size) {
+    array_type_t* array = malloc(sizeof(array_type_t));
+    array->type = type;
+    array->size = size;
+    return array;
+}
 
-// void array_type_drop(array_type_t* self) {
-//     type_drop(self->type);
-//     expr_drop(self->size);
-//     free(self);
-// }
+void array_type_drop(array_type_t* self) {
+    type_drop(self->type);
+    expr_drop(self->size);
+    free(self);
+}
 
 type_t* new_type(type_kind_t kind, type_value_t value) {
     type_t* type = malloc(sizeof(type_t));
@@ -55,7 +55,7 @@ void type_drop(type_t* self) {
         path_type_drop(self->value.path);
     else if (self->kind >= TY_POINTER && self->kind <= TY_SLICE)
         type_drop(self->value.type);
-    // else if (self->kind == TY_ARRAY)
-    //     array_type_drop(self->value.array);
+    else if (self->kind == TY_ARRAY)
+        array_type_drop(self->value.array);
     free(self);
 }

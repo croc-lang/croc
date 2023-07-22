@@ -557,6 +557,105 @@ Test(parser, var_with_type_declaration_without_initial_value) {
     parser_drop(parser);
 }
 
+Test(parser, var_with_pointer_type) {
+    lexer_t* lexer = new_lexer("test.cr", "int* a;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 0);
+    cr_assert_eq(stmt->value.var->constant, false);
+
+    cr_assert_eq(stmt->value.var->type->kind, TY_POINTER);
+    cr_assert_eq(stmt->value.var->type->value.type->kind, TY_PATH);
+    string_t* type_value = vector_get(
+        stmt->value.var->type->value.type->value.path->segments,
+        0);
+    cr_assert_str_eq(type_value->data, "int");
+
+    cr_assert_eq(parser->context->errors->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, var_with_ref_type) {
+    lexer_t* lexer = new_lexer("test.cr", "int& a;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 0);
+    cr_assert_eq(stmt->value.var->constant, false);
+
+    cr_assert_eq(stmt->value.var->type->kind, TY_REFERENCE);
+    cr_assert_eq(stmt->value.var->type->value.type->kind, TY_PATH);
+    string_t* type_value = vector_get(
+        stmt->value.var->type->value.type->value.path->segments,
+        0);
+    cr_assert_str_eq(type_value->data, "int");
+
+    cr_assert_eq(parser->context->errors->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, var_with_slice_type) {
+    lexer_t* lexer = new_lexer("test.cr", "int[] a;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 0);
+    cr_assert_eq(stmt->value.var->constant, false);
+
+    cr_assert_eq(stmt->value.var->type->kind, TY_SLICE);
+    cr_assert_eq(stmt->value.var->type->value.type->kind, TY_PATH);
+    string_t* type_value = vector_get(
+        stmt->value.var->type->value.type->value.path->segments,
+        0);
+    cr_assert_str_eq(type_value->data, "int");
+
+    cr_assert_eq(parser->context->errors->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, var_with_array_type) {
+    lexer_t* lexer = new_lexer("test.cr", "int[3] a;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 0);
+    cr_assert_eq(stmt->value.var->constant, false);
+
+    cr_assert_eq(stmt->value.var->type->kind, TY_ARRAY);
+    cr_assert_eq(stmt->value.var->type->value.array->type->kind, TY_PATH);
+    string_t* type_value = vector_get(
+        stmt->value.var->type->value.array->type->value.path->segments,
+        0);
+    cr_assert_str_eq(type_value->data, "int");
+
+    cr_assert_eq(
+        stmt->value.var->type->value.array->size->kind,
+        EX_INT_LITERAL);
+    cr_assert_str_eq(
+        stmt->value.var->type->value.array->size->value.value->data,
+        "3");
+
+    cr_assert_eq(parser->context->errors->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
 Test(parser, var_with_tuple_type_declaration) {
     lexer_t* lexer = new_lexer("test.cr", "(int, uint) a = (8, 4);");
     parser_t* parser = new_parser(lexer);
