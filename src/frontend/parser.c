@@ -627,9 +627,15 @@ type_t* parse_type(parser_t* self) {
             kind = TY_REFERENCE;
             break;
         case TK_LBRACKET:
-            parser_eat(self, TK_RBRACKET);
-            value.type = type;
-            kind = TY_SLICE;
+            if (parser_check(self, TK_RBRACKET)) {
+                parser_eat(self, TK_RBRACKET);
+                value.type = type;
+                kind = TY_SLICE;
+            } else {
+                value.array = new_array_type(type, parse_expr(self));
+                parser_eat(self, TK_RBRACKET);
+                kind = TY_ARRAY;
+            }
             break;
         default: unreachable();
         }

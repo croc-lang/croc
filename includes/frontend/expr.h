@@ -4,6 +4,7 @@
 #include "token.h"
 #include "type.h"
 
+typedef struct Type type_t;
 typedef struct Expr expr_t;
 
 typedef struct BinaryExpr {
