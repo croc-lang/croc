@@ -1349,3 +1349,19 @@ Test(parser, empty_return) {
     stmt_drop(stmt);
     parser_drop(parser);
 }
+
+Test(parser, struct_declaration) {
+    lexer_t* lexer = new_lexer("test.cr", "struct Test;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_STRUCT);
+    cr_assert_null(stmt->value.struct_stmt->properties);
+    cr_assert_str_eq(stmt->value.struct_stmt->name->data, "Test");
+
+    cr_assert_eq(parser->context->errors->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}

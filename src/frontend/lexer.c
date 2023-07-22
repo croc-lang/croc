@@ -73,6 +73,7 @@ static const hardcoded_token keywords_tokens[] = {
     {TK_KW_MODULE, "module"},
     {TK_KW_RETURN, "return"},
     {TK_KW_AS, "as"},
+    {TK_KW_STRUCT, "struct"},
 };
 static const size_t keywords_tokens_count =
     sizeof(keywords_tokens) / sizeof(hardcoded_token);
