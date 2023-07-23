@@ -39,14 +39,14 @@ void import_stmt_drop(import_stmt_t* self) {
     free(self);
 }
 
-module_stmt_t* new_module_stmt(path_type_t* path) {
+module_stmt_t* new_module_stmt(vector_t* path) {
     module_stmt_t* stmt = malloc(sizeof(module_stmt_t));
     stmt->path = path;
     return stmt;
 }
 
 void module_stmt_drop(module_stmt_t* self) {
-    path_type_drop(self->path);
+    vector_deeply_drop(self->path, (void*)string_drop);
     free(self);
 }
 

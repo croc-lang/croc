@@ -80,7 +80,7 @@ inline static void parser_eat(parser_t* self, token_kind_t kind) {
     self->current = lexer_next_token(self->lexer);
 }
 
-static path_type_t* parse_type_path(parser_t* self) {
+static vector_t* parse_type_path(parser_t* self) {
     vector_t* segments = new_vector();
     string_t* name = token_get_value(self->current, "");
 
@@ -93,7 +93,7 @@ static path_type_t* parse_type_path(parser_t* self) {
         vector_push(segments, name);
     }
 
-    return new_path_type(segments);
+    return segments;
 }
 
 static arg_expr_t* parse_arg(parser_t* self) {
@@ -614,6 +614,7 @@ static stmt_t* parse_struct(parser_t* self) {
             vector_push(properties, parse_property(self));
             if (!parser_skip_if_exist(self, TK_SEMICOLON)) break;
         }
+        parser_eat(self, TK_RBRACE);
     }
 
     value.struct_stmt = new_struct_stmt(name, properties);
@@ -630,7 +631,7 @@ type_t* parse_type(parser_t* self) {
 
     if (parser_check(self, TK_LPAREN)) type = parse_type_tuple(self);
     else {
-        path_type_t* path = parse_type_path(self);
+        vector_t* path = parse_type_path(self);
         if (parser_skip_if_exist(self, TK_CMP_LT)) {
             while (!parser_check(self, TK_CMP_GT)) {
                 vector_push(generics, parse_type(self));
@@ -733,6 +734,7 @@ stmt_t* parser_next(parser_t* self) {
         break;
     case TK_KW_STRUCT:
         stmt = parse_struct(self);
+        break;
     default:
         start_position = location_clone(self->current->location);
         if (parser_check(self, TK_IDENT) || parser_check(self, TK_LPAREN)) {

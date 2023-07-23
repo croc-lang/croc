@@ -7,12 +7,8 @@
 typedef struct Type type_t;
 typedef struct Expr expr_t;
 
-typedef struct PathType {
-    /*string_t*/vector_t* segments;
-} path_type_t;
-
 typedef struct GenericType {
-    path_type_t* path;
+    /*string_t*/vector_t* path;
     /*type_t*/vector_t* generics;
 } generic_type_t;
 
@@ -38,13 +34,13 @@ typedef union TypeValue {
     generic_type_t* generic;
 
     // TY_PATH
-    path_type_t* path;
+    /*string_t*/vector_t* path;
 
     // TY_ARRAY
     array_type_t* array;
 
     // TY_TUPLE
-    vector_t* tuple;
+    /*type_t*/vector_t* tuple;
 
     // TY_POINTER, TY_REFERENCE, TY_SLICE
     type_t* type;
@@ -55,11 +51,8 @@ typedef struct Type {
     type_value_t value;
 } type_t;
 
-path_type_t* new_path_type(/*string_t*/vector_t* segments);
-void path_type_drop(path_type_t* self);
-
 generic_type_t* new_generic_type(
-    path_type_t* path,
+    /*string_t*/vector_t* path,
     /*type_t*/vector_t* generics
 );
 void generic_type_drop(generic_type_t* self);

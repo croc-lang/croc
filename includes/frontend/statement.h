@@ -28,7 +28,7 @@ typedef struct ImportStmt {
 } import_stmt_t;
 
 typedef struct ModuleStmt {
-    path_type_t* path;
+    /*string_t*/vector_t* path;
 } module_stmt_t;
 
 typedef struct VarStmt {
@@ -161,7 +161,7 @@ import_stmt_t* new_import_stmt(
 );
 void import_stmt_drop(import_stmt_t* self);
 
-module_stmt_t* new_module_stmt(path_type_t* path);
+module_stmt_t* new_module_stmt(/*string_t*/vector_t* path);
 void module_stmt_drop(module_stmt_t* self);
 
 var_stmt_t* new_var_stmt(

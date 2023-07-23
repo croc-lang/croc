@@ -1,19 +1,8 @@
 #include <stdlib.h>
 #include <frontend/type.h>
 
-path_type_t* new_path_type(/*string_t*/vector_t* segments) {
-    path_type_t* path = malloc(sizeof(path_type_t));
-    path->segments = segments;
-    return path;
-}
-
-void path_type_drop(path_type_t* self) {
-    vector_deeply_drop(self->segments, (void*)string_drop);
-    free(self);
-}
-
 generic_type_t* new_generic_type(
-    path_type_t* path,
+    /*string_t*/vector_t* path,
     /*type_t*/vector_t* generics
 ) {
     generic_type_t* generic = malloc(sizeof(generic_type_t));
@@ -23,7 +12,7 @@ generic_type_t* new_generic_type(
 }
 
 void generic_type_drop(generic_type_t* self) {
-    path_type_drop(self->path);
+    vector_deeply_drop(self->path, (void*)string_drop);
     vector_deeply_drop(self->generics, (void*)type_drop);
     free(self);
 }
@@ -52,7 +41,7 @@ void type_drop(type_t* self) {
     if (self->kind == TY_GENERIC)
         generic_type_drop(self->value.generic);
     else if (self->kind == TY_PATH)
-        path_type_drop(self->value.path);
+        vector_deeply_drop(self->value.path, (void*)string_drop);
     else if (self->kind >= TY_POINTER && self->kind <= TY_SLICE)
         type_drop(self->value.type);
     else if (self->kind == TY_ARRAY)
