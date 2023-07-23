@@ -514,7 +514,7 @@ Test(parser, var_with_type_declaration) {
 
     cr_assert_eq(stmt->value.var->type->kind, TY_PATH);
     string_t* type_value = vector_get(
-        stmt->value.var->type->value.path->segments,
+        stmt->value.var->type->value.path,
         0);
     cr_assert_str_eq(type_value->data, "int");
 
@@ -542,7 +542,7 @@ Test(parser, var_with_type_declaration_without_initial_value) {
 
     cr_assert_eq(stmt->value.var->type->kind, TY_PATH);
     string_t* type_value = vector_get(
-        stmt->value.var->type->value.path->segments,
+        stmt->value.var->type->value.path,
         0);
     cr_assert_str_eq(type_value->data, "int");
 
@@ -570,7 +570,7 @@ Test(parser, var_with_pointer_type) {
     cr_assert_eq(stmt->value.var->type->kind, TY_POINTER);
     cr_assert_eq(stmt->value.var->type->value.type->kind, TY_PATH);
     string_t* type_value = vector_get(
-        stmt->value.var->type->value.type->value.path->segments,
+        stmt->value.var->type->value.type->value.path,
         0);
     cr_assert_str_eq(type_value->data, "int");
 
@@ -593,7 +593,7 @@ Test(parser, var_with_ref_type) {
     cr_assert_eq(stmt->value.var->type->kind, TY_REFERENCE);
     cr_assert_eq(stmt->value.var->type->value.type->kind, TY_PATH);
     string_t* type_value = vector_get(
-        stmt->value.var->type->value.type->value.path->segments,
+        stmt->value.var->type->value.type->value.path,
         0);
     cr_assert_str_eq(type_value->data, "int");
 
@@ -616,7 +616,7 @@ Test(parser, var_with_slice_type) {
     cr_assert_eq(stmt->value.var->type->kind, TY_SLICE);
     cr_assert_eq(stmt->value.var->type->value.type->kind, TY_PATH);
     string_t* type_value = vector_get(
-        stmt->value.var->type->value.type->value.path->segments,
+        stmt->value.var->type->value.type->value.path,
         0);
     cr_assert_str_eq(type_value->data, "int");
 
@@ -639,7 +639,7 @@ Test(parser, var_with_array_type) {
     cr_assert_eq(stmt->value.var->type->kind, TY_ARRAY);
     cr_assert_eq(stmt->value.var->type->value.array->type->kind, TY_PATH);
     string_t* type_value = vector_get(
-        stmt->value.var->type->value.array->type->value.path->segments,
+        stmt->value.var->type->value.array->type->value.path,
         0);
     cr_assert_str_eq(type_value->data, "int");
 
@@ -670,7 +670,7 @@ Test(parser, var_with_tuple_type_declaration) {
         stmt->value.var->type->value.tuple,
         0);
     string_t* segment = vector_get(
-        first_type->value.path->segments,
+        first_type->value.path,
         0);
     cr_assert_str_eq(segment->data, "int");
 
@@ -678,7 +678,7 @@ Test(parser, var_with_tuple_type_declaration) {
         stmt->value.var->type->value.tuple,
         1);
     string_t* segment2 = vector_get(
-        second_type->value.path->segments,
+        second_type->value.path,
         0);
     cr_assert_str_eq(segment2->data, "uint");
 
@@ -736,7 +736,7 @@ Test(parser, const_with_type_declaration) {
 
     cr_assert_eq(stmt->value.var->type->kind, TY_PATH);
     string_t* type_value = vector_get(
-        stmt->value.var->type->value.path->segments,
+        stmt->value.var->type->value.path,
         0);
     cr_assert_str_eq(type_value->data, "int");
 
@@ -823,7 +823,7 @@ Test(parser, func_with_return_type) {
     cr_assert_eq(stmt->value.func->public, 0);
     cr_assert_eq(stmt->value.func->return_type->kind, TY_PATH);
     string_t* segment = vector_get(
-        stmt->value.func->return_type->value.path->segments,
+        stmt->value.func->return_type->value.path,
         0);
     cr_assert_str_eq(segment->data, "int");
 
@@ -848,7 +848,7 @@ Test(parser, func_with_return_pointer_type) {
     cr_assert_eq(stmt->value.func->return_type->kind, TY_POINTER);
     cr_assert_eq(stmt->value.func->return_type->value.type->kind, TY_PATH);
     string_t* segment = vector_get(
-        stmt->value.func->return_type->value.type->value.path->segments,
+        stmt->value.func->return_type->value.type->value.path,
         0);
     cr_assert_str_eq(segment->data, "int");
 
@@ -872,7 +872,7 @@ Test(parser, func_with_return_type_with_parent) {
     cr_assert_eq(stmt->value.func->public, 0);
     cr_assert_eq(stmt->value.func->return_type->kind, TY_PATH);
     string_t* segment = vector_get(
-        stmt->value.func->return_type->value.path->segments,
+        stmt->value.func->return_type->value.path,
         0);
     cr_assert_str_eq(segment->data, "int");
 
@@ -899,7 +899,7 @@ Test(parser, func_with_return_1_tuple_type) {
         stmt->value.func->return_type->value.tuple,
         0);
     string_t* segment = vector_get(
-        first_type->value.path->segments,
+        first_type->value.path,
         0);
     cr_assert_str_eq(segment->data, "int");
 
@@ -926,7 +926,7 @@ Test(parser, func_with_return_more_tuple_type) {
         stmt->value.func->return_type->value.tuple,
         0);
     string_t* segment = vector_get(
-        first_type->value.path->segments,
+        first_type->value.path,
         0);
     cr_assert_str_eq(segment->data, "int");
 
@@ -934,7 +934,7 @@ Test(parser, func_with_return_more_tuple_type) {
         stmt->value.func->return_type->value.tuple,
         1);
     string_t* segment2 = vector_get(
-        second_type->value.path->segments,
+        second_type->value.path,
         0);
     cr_assert_str_eq(segment2->data, "uint");
 
@@ -963,7 +963,7 @@ Test(parser, func_with_1_argument) {
         0);
     cr_assert_str_eq(arg->name->data, "a");
     cr_assert_eq(arg->type->kind, TY_PATH);
-    string_t* segment = vector_get(arg->type->value.path->segments, 0);
+    string_t* segment = vector_get(arg->type->value.path, 0);
     cr_assert_str_eq(segment->data, "int");
 
     cr_assert_eq(stmt->value.func->body->len, 0);
@@ -990,7 +990,7 @@ Test(parser, func_with_more_arguments) {
         0);
     cr_assert_str_eq(arg->name->data, "a");
     cr_assert_eq(arg->type->kind, TY_PATH);
-    string_t* segment = vector_get(arg->type->value.path->segments, 0);
+    string_t* segment = vector_get(arg->type->value.path, 0);
     cr_assert_str_eq(segment->data, "int");
 
     arg_expr_t* arg2 = vector_get(
@@ -998,7 +998,7 @@ Test(parser, func_with_more_arguments) {
         1);
     cr_assert_str_eq(arg2->name->data, "b");
     cr_assert_eq(arg2->type->kind, TY_PATH);
-    string_t* segment2 = vector_get(arg2->type->value.path->segments, 0);
+    string_t* segment2 = vector_get(arg2->type->value.path, 0);
     cr_assert_str_eq(segment2->data, "int");
 
     cr_assert_eq(stmt->value.func->body->len, 0);
@@ -1017,8 +1017,8 @@ Test(parser, module) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_MODULE);
-    cr_assert_eq(stmt->value.module->path->segments->len, 1);
-    string_t* segment = vector_get(stmt->value.module->path->segments, 0);
+    cr_assert_eq(stmt->value.module->path->len, 1);
+    string_t* segment = vector_get(stmt->value.module->path, 0);
     cr_assert_str_eq(segment->data, "test");
 
     cr_assert_eq(parser->context->errors->len, 0);
@@ -1034,9 +1034,9 @@ Test(parser, long_module) {
     stmt_t* stmt = parser_next(parser);
 
     cr_assert_eq(stmt->kind, STMT_MODULE);
-    string_t* segment = vector_get(stmt->value.module->path->segments, 0);
+    string_t* segment = vector_get(stmt->value.module->path, 0);
     cr_assert_str_eq(segment->data, "test");
-    string_t* segment2 = vector_get(stmt->value.module->path->segments, 1);
+    string_t* segment2 = vector_get(stmt->value.module->path, 1);
     cr_assert_str_eq(segment2->data, "test2");
 
     cr_assert_eq(parser->context->errors->len, 0);
@@ -1281,7 +1281,7 @@ Test(parser, for_primary_with_declaration) {
         TY_PATH);
     string_t* type_value = vector_get(
         stmt->value.for_stmt->value.primary->
-            init.decla->type->value.path->segments,
+            init.decla->type->value.path,
         0);
     cr_assert_str_eq(type_value->data, "int");
 
@@ -1359,6 +1359,56 @@ Test(parser, struct_declaration) {
     cr_assert_eq(stmt->kind, STMT_STRUCT);
     cr_assert_null(stmt->value.struct_stmt->properties);
     cr_assert_str_eq(stmt->value.struct_stmt->name->data, "Test");
+
+    cr_assert_eq(parser->context->errors->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, struct_declaration_empty) {
+    lexer_t* lexer = new_lexer("test.cr", "struct Test {}");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_STRUCT);
+    cr_assert_str_eq(stmt->value.struct_stmt->name->data, "Test");
+    cr_assert_eq(stmt->value.struct_stmt->properties->len, 0);
+
+    cr_assert_eq(parser->context->errors->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+}
+
+Test(parser, struct_declaration_not_empty) {
+    lexer_t* lexer = new_lexer("test.cr", "struct Test { int a; pub int b }");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_STRUCT);
+    cr_assert_str_eq(stmt->value.struct_stmt->name->data, "Test");
+    cr_assert_eq(stmt->value.struct_stmt->properties->len, 2);
+
+    struct_property_t* property1 = vector_get(
+        stmt->value.struct_stmt->properties,
+        0);
+    cr_assert_eq(property1->public, 0);
+    cr_assert_str_eq(property1->name->data, "a");
+    cr_assert_eq(property1->type->kind, TY_PATH);
+    string_t* type_value1 = vector_get(property1->type->value.path, 0);
+    cr_assert_str_eq(type_value1->data, "int");
+
+    struct_property_t* property2 = vector_get(
+        stmt->value.struct_stmt->properties,
+        1);
+    cr_assert_eq(property2->public, 1);
+    cr_assert_str_eq(property2->name->data, "b");
+    cr_assert_eq(property2->type->kind, TY_PATH);
+    string_t* type_value2 = vector_get(property2->type->value.path, 0);
+    cr_assert_str_eq(type_value2->data, "int");
 
     cr_assert_eq(parser->context->errors->len, 0);
 
