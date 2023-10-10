@@ -16,7 +16,7 @@ vector_t* new_vector() {
 }
 
 void* vector_get(vector_t* self, size_t index) {
-    if (self->data == NULL || index >= self->len) return NULL;
+    if (self->data == NULL || index >= self->len || index < 0) return NULL;
 
     return self->data[index];
 }
@@ -68,6 +68,23 @@ void* vector_pop(vector_t* self) {
     void* popped_element = vector_get(self, --self->len);
     self->data[self->len] = NULL;
     return popped_element;
+}
+
+void* vector_replace(vector_t* self, void* new_element, void* old_element) {
+    size_t i = 0;
+    while (self->data[i] != old_element) i++;
+    self->data[i] = new_element;
+    return old_element;
+}
+
+void* vector_remove(vector_t* self, void* element) {
+    size_t offset = 0;
+    for (int i = 0; i < self->len; i++) {
+        if (self->data[i] == element) offset++;
+        else if (offset) self->data[i - offset] = self->data[i];
+    }
+    self->len -= offset;
+    return element;
 }
 
 vector_t* vector_clone(vector_t* self) {

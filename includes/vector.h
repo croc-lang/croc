@@ -14,6 +14,8 @@ void* vector_set(vector_t* self, size_t index, void* element);
 
 vector_t* vector_push(vector_t* self, void* element);
 void* vector_pop(vector_t* self);
+void* vector_replace(vector_t* self, void* new_element, void* old_element);
+void* vector_remove(vector_t* self, void* element);
 vector_t* vector_clone(vector_t* self);
 void vector_deeply_drop(vector_t* self, void (*dropper)(void*));
 void vector_drop(vector_t* self);
