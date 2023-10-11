@@ -4,6 +4,10 @@ add_requires("criterion")
 add_requires("llvm")
 set_toolchains("@llvm")
 
+if is_mode("debug") then
+    add_defines("DEBUG")
+end
+
 target("croc")
     set_kind("binary")
     add_files("src/**.c")
