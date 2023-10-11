@@ -1,7 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
-#include <vector.h>
 #include <stdlib.h>
+#include <vector.h>
 
 typedef vector_t memory_container_t;
 

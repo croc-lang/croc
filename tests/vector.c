@@ -1,7 +1,7 @@
 #include <criterion/criterion.h>
 #include <string_utils.h>
-#include <vector.h>
 #include <memory.h>
+#include <vector.h>
 
 Test(vector, alloc_new_vector) {
     memory_container_t* container = new_memory_container();
@@ -104,13 +104,13 @@ Test(vector, clone) {
 Test(vector, deep_freeing_of_a_vector) {
     memory_container_t* container = new_memory_container();
     cr_assert_eq(container->len, 0);
-    string_t* str = new_string("Hello"); // 2 allocations
+    string_t* str = new_string("Hello");  // 2 allocations
     string_t* str2 = new_string("World");
 
-    vector_t* vector = new_vector(); // 1 allocation
+    vector_t* vector = new_vector();  // 1 allocation
     cr_assert_eq(container->len, 5);
-    vector_push(vector, str); // 1 allocation
-    vector_push(vector, str2); // 1 reallocation
+    vector_push(vector, str);  // 1 allocation
+    vector_push(vector, str2);  // 1 reallocation
     cr_assert_eq(container->len, 6);
 
     vector_deeply_drop(vector, (void*)string_drop);
