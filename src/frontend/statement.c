@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <memory.h>
 #include <frontend/statement.h>
 
 struct_property_t* new_struct_property(
@@ -6,7 +6,7 @@ struct_property_t* new_struct_property(
     type_t* type,
     string_t* name
 ) {
-    struct_property_t* property = malloc(sizeof(struct_property_t));
+    struct_property_t* property = mem_alloc(sizeof(struct_property_t));
     property->public = public;
     property->type = type;
     property->name = name;
@@ -16,7 +16,7 @@ struct_property_t* new_struct_property(
 void struct_property_drop(struct_property_t* self) {
     string_drop(self->name);
     type_drop(self->type);
-    free(self);
+    mem_free(self);
 }
 
 import_stmt_t* new_import_stmt(
@@ -24,7 +24,7 @@ import_stmt_t* new_import_stmt(
     string_t* move_to,
     /*string_t*/vector_t* imports
 ) {
-    import_stmt_t* stmt = malloc(sizeof(import_stmt_t));
+    import_stmt_t* stmt = mem_alloc(sizeof(import_stmt_t));
     stmt->file_paths = file_paths;
     stmt->move_to = move_to;
     stmt->imports = imports;
@@ -36,18 +36,18 @@ void import_stmt_drop(import_stmt_t* self) {
     if (self->move_to != NULL) string_drop(self->move_to);
     if (self->imports != NULL)
         vector_deeply_drop(self->imports, (void*)string_drop);
-    free(self);
+    mem_free(self);
 }
 
 module_stmt_t* new_module_stmt(vector_t* path) {
-    module_stmt_t* stmt = malloc(sizeof(module_stmt_t));
+    module_stmt_t* stmt = mem_alloc(sizeof(module_stmt_t));
     stmt->path = path;
     return stmt;
 }
 
 void module_stmt_drop(module_stmt_t* self) {
     vector_deeply_drop(self->path, (void*)string_drop);
-    free(self);
+    mem_free(self);
 }
 
 var_stmt_t* new_var_stmt(
@@ -56,7 +56,7 @@ var_stmt_t* new_var_stmt(
     expr_t* left,
     expr_t* right
 ) {
-    var_stmt_t* stmt = malloc(sizeof(var_stmt_t));
+    var_stmt_t* stmt = mem_alloc(sizeof(var_stmt_t));
     stmt->public = false;
     stmt->constant = constant;
     stmt->type = type;
@@ -69,7 +69,7 @@ void var_stmt_drop(var_stmt_t* self) {
     if (self->type != NULL) type_drop(self->type);
     expr_drop(self->left);
     if (self->right != NULL) expr_drop(self->right);
-    free(self);
+    mem_free(self);
 }
 
 func_stmt_t* new_func_stmt(
@@ -78,7 +78,7 @@ func_stmt_t* new_func_stmt(
     /*arg_expr_t*/vector_t* args,
     /*stmt_t*/vector_t* body
 ) {
-    func_stmt_t* stmt = malloc(sizeof(func_stmt_t));
+    func_stmt_t* stmt = mem_alloc(sizeof(func_stmt_t));
     stmt->public = false;
     stmt->name = name;
     stmt->return_type = return_type;
@@ -93,14 +93,14 @@ void func_stmt_drop(func_stmt_t* self) {
         type_drop(self->return_type);
     vector_deeply_drop(self->args, (void*)arg_expr_drop);
     vector_deeply_drop(self->body, (void*)stmt_drop);
-    free(self);
+    mem_free(self);
 }
 
 else_branch_stmt_t* new_else_branch_stmt(
     /*stmt_t*/vector_t* body,
     if_stmt_t* if_branch
 ) {
-    else_branch_stmt_t* stmt = malloc(sizeof(else_branch_stmt_t));
+    else_branch_stmt_t* stmt = mem_alloc(sizeof(else_branch_stmt_t));
     stmt->body = body;
     stmt->if_branch = if_branch;
     return stmt;
@@ -111,14 +111,14 @@ void else_branch_stmt_drop(else_branch_stmt_t* self) {
         vector_deeply_drop(self->body, (void*)stmt_drop);
     else
         if_stmt_drop(self->if_branch);
-    free(self);
+    mem_free(self);
 }
 
 while_stmt_t* new_while_stmt(
     expr_t* condition,
     /*stmt_t*/vector_t* body
 ) {
-    while_stmt_t* stmt = malloc(sizeof(while_stmt_t));
+    while_stmt_t* stmt = mem_alloc(sizeof(while_stmt_t));
     stmt->condition = condition;
     stmt->body = body;
     return stmt;
@@ -127,7 +127,7 @@ while_stmt_t* new_while_stmt(
 void while_stmt_drop(while_stmt_t* self) {
     vector_deeply_drop(self->body, (void*)stmt_drop);
     expr_drop(self->condition);
-    free(self);
+    mem_free(self);
 }
 
 primary_for_t* new_primary_for(
@@ -136,7 +136,7 @@ primary_for_t* new_primary_for(
     expr_t* condition,
     expr_t* updater
 ) {
-    primary_for_t* stmt = malloc(sizeof(primary_for_t));
+    primary_for_t* stmt = mem_alloc(sizeof(primary_for_t));
     stmt->init = init;
     stmt->init_kind = init_kind;
     stmt->condition = condition;
@@ -149,7 +149,7 @@ void primary_for_drop(primary_for_t* self) {
     else if (self->init_kind == FOR_INIT_EXPR) expr_drop(self->init.expr);
     if (self->condition != NULL) expr_drop(self->condition);
     if (self->updater != NULL) expr_drop(self->updater);
-    free(self);
+    mem_free(self);
 }
 
 each_for_t* new_each_for(
@@ -158,7 +158,7 @@ each_for_t* new_each_for(
     expr_t* left,
     expr_t* right
 ) {
-    each_for_t* stmt = malloc(sizeof(each_for_t));
+    each_for_t* stmt = mem_alloc(sizeof(each_for_t));
     stmt->constant = constant;
     stmt->type = type;
     stmt->left = left;
@@ -170,7 +170,7 @@ void each_for_drop(each_for_t* self) {
     if (self->type != NULL) type_drop(self->type);
     expr_drop(self->left);
     expr_drop(self->right);
-    free(self);
+    mem_free(self);
 }
 
 for_stmt_t* new_for_stmt(
@@ -178,7 +178,7 @@ for_stmt_t* new_for_stmt(
     for_kind_t kind,
     /*stmt_t*/vector_t* body
 ) {
-    for_stmt_t* stmt = malloc(sizeof(for_stmt_t));
+    for_stmt_t* stmt = mem_alloc(sizeof(for_stmt_t));
     stmt->value = value;
     stmt->kind = kind;
     stmt->body = body;
@@ -189,7 +189,7 @@ void for_stmt_drop(for_stmt_t* self) {
     if (self->kind == FK_PRIMARY) primary_for_drop(self->value.primary);
     else if (self->kind == FK_EACH) each_for_drop(self->value.each);
     vector_deeply_drop(self->body, (void*)stmt_drop);
-    free(self);
+    mem_free(self);
 }
 
 if_stmt_t* new_if_stmt(
@@ -197,7 +197,7 @@ if_stmt_t* new_if_stmt(
     /*stmt_t*/vector_t* body,
     else_branch_stmt_t* else_branch
 ) {
-    if_stmt_t* stmt = malloc(sizeof(if_stmt_t));
+    if_stmt_t* stmt = mem_alloc(sizeof(if_stmt_t));
     stmt->condition = condition;
     stmt->body = body;
     stmt->else_branch = else_branch;
@@ -209,14 +209,14 @@ void if_stmt_drop(if_stmt_t* self) {
         else_branch_stmt_drop(self->else_branch);
     vector_deeply_drop(self->body, (void*)stmt_drop);
     expr_drop(self->condition);
-    free(self);
+    mem_free(self);
 }
 
 struct_stmt_t* new_struct_stmt(
     string_t* name,
     /*struct_property_t*/vector_t* properties
 ) {
-    struct_stmt_t* stmt = malloc(sizeof(struct_stmt_t));
+    struct_stmt_t* stmt = mem_alloc(sizeof(struct_stmt_t));
     stmt->name = name;
     stmt->properties = properties;
     return stmt;
@@ -226,11 +226,11 @@ void struct_stmt_drop(struct_stmt_t* self) {
     string_drop(self->name);
     if (self->properties != NULL)
         vector_deeply_drop(self->properties, (void*)struct_property_drop);
-    free(self);
+    mem_free(self);
 }
 
 stmt_t* new_stmt(stmt_kind_t kind, stmt_value_t value) {
-    stmt_t* stmt = malloc(sizeof(stmt_t));
+    stmt_t* stmt = mem_alloc(sizeof(stmt_t));
     stmt->kind = kind;
     stmt->value = value;
     return stmt;
@@ -257,5 +257,5 @@ void stmt_drop(stmt_t* self) {
         self->kind == STMT_EXPR ||
         (self->kind == STMT_RETURN && self->value.expr != NULL))
             expr_drop(self->value.expr);
-    free(self);
+    mem_free(self);
 }

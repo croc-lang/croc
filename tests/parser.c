@@ -1,7 +1,9 @@
 #include <criterion/criterion.h>
 #include <frontend/parser.h>
+#include <memory.h>
 
 Test(parser, int) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "1;");
     parser_t* parser = new_parser(lexer);
 
@@ -15,9 +17,11 @@ Test(parser, int) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, int_in_parent) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "(1);");
     parser_t* parser = new_parser(lexer);
 
@@ -31,9 +35,11 @@ Test(parser, int_in_parent) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, tuple_with_1_element) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "(1,);");
     parser_t* parser = new_parser(lexer);
 
@@ -51,9 +57,11 @@ Test(parser, tuple_with_1_element) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, tuple_with_more_elements) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "(1, 2, 3);");
     parser_t* parser = new_parser(lexer);
 
@@ -79,9 +87,11 @@ Test(parser, tuple_with_more_elements) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, array_with_no_element) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "[];");
     parser_t* parser = new_parser(lexer);
 
@@ -95,9 +105,11 @@ Test(parser, array_with_no_element) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, array_with_1_element) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "[1];");
     parser_t* parser = new_parser(lexer);
 
@@ -115,9 +127,11 @@ Test(parser, array_with_1_element) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, array_with_more_elements) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "[1, 2, 3];");
     parser_t* parser = new_parser(lexer);
 
@@ -143,9 +157,11 @@ Test(parser, array_with_more_elements) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, string_auto_concat) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "\"hello\" \" world\";");
     parser_t* parser = new_parser(lexer);
 
@@ -159,9 +175,11 @@ Test(parser, string_auto_concat) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, unary) {
+    memory_container_t* container = new_memory_container();
     const int size = 7;
 
     expr_kind_t unaries[] = {
@@ -193,9 +211,11 @@ Test(parser, unary) {
 
 
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, binary_add) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "1 + 2;");
     parser_t* parser = new_parser(lexer);
 
@@ -218,9 +238,11 @@ Test(parser, binary_add) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, orders_of_precedence) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "3 * 1 + 2;");
     parser_t* parser = new_parser(lexer);
 
@@ -254,9 +276,11 @@ Test(parser, orders_of_precedence) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, orders_of_precedence_with_assignment) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "a = 3 * 1 + 2;");
     parser_t* parser = new_parser(lexer);
 
@@ -301,9 +325,11 @@ Test(parser, orders_of_precedence_with_assignment) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, extra_assign) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "a += 3;");
     parser_t* parser = new_parser(lexer);
 
@@ -326,9 +352,11 @@ Test(parser, extra_assign) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, useless_semi_colon) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", ";;;1;");
     parser_t* parser = new_parser(lexer);
 
@@ -342,9 +370,11 @@ Test(parser, useless_semi_colon) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, while_only) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "while (a) b;");
     parser_t* parser = new_parser(lexer);
 
@@ -363,9 +393,11 @@ Test(parser, while_only) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, while_multi) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "while (a) {\nb;b2;\n}");
     parser_t* parser = new_parser(lexer);
 
@@ -389,9 +421,11 @@ Test(parser, while_multi) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, if_only) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "if (a) b;");
     parser_t* parser = new_parser(lexer);
 
@@ -412,9 +446,11 @@ Test(parser, if_only) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, if_with_else) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "if (a) b; else c;");
     parser_t* parser = new_parser(lexer);
 
@@ -439,9 +475,11 @@ Test(parser, if_with_else) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, if_with_else_if) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer(
         "test.cr",
         "if (a) {\nb;b2;\n} else if (c) {\nd;\n}");
@@ -477,9 +515,11 @@ Test(parser, if_with_else_if) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, var_declaration) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "let a = 8;");
     parser_t* parser = new_parser(lexer);
 
@@ -500,9 +540,11 @@ Test(parser, var_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, var_with_type_declaration) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "int a = 8;");
     parser_t* parser = new_parser(lexer);
 
@@ -528,9 +570,11 @@ Test(parser, var_with_type_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, var_with_type_declaration_without_initial_value) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "int a;");
     parser_t* parser = new_parser(lexer);
 
@@ -555,9 +599,11 @@ Test(parser, var_with_type_declaration_without_initial_value) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, var_with_pointer_type) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "int* a;");
     parser_t* parser = new_parser(lexer);
 
@@ -578,9 +624,11 @@ Test(parser, var_with_pointer_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, var_with_ref_type) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "int& a;");
     parser_t* parser = new_parser(lexer);
 
@@ -601,9 +649,11 @@ Test(parser, var_with_ref_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, var_with_slice_type) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "int[] a;");
     parser_t* parser = new_parser(lexer);
 
@@ -624,9 +674,11 @@ Test(parser, var_with_slice_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, var_with_array_type) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "int[3] a;");
     parser_t* parser = new_parser(lexer);
 
@@ -654,9 +706,11 @@ Test(parser, var_with_array_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, var_with_tuple_type_declaration) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "(int, uint) a = (8, 4);");
     parser_t* parser = new_parser(lexer);
 
@@ -699,9 +753,11 @@ Test(parser, var_with_tuple_type_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, const_with_let_declaration) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "const let a = 8;");
     parser_t* parser = new_parser(lexer);
 
@@ -722,9 +778,11 @@ Test(parser, const_with_let_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, const_with_type_declaration) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "const int a = 8;");
     parser_t* parser = new_parser(lexer);
 
@@ -750,9 +808,11 @@ Test(parser, const_with_type_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, public_var_declaration) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "pub let a = 8;");
     parser_t* parser = new_parser(lexer);
 
@@ -773,9 +833,11 @@ Test(parser, public_var_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, public_func_definition) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "pub func test() {}");
     parser_t* parser = new_parser(lexer);
 
@@ -792,9 +854,11 @@ Test(parser, public_func_definition) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, func_definition) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "func test() {}");
     parser_t* parser = new_parser(lexer);
 
@@ -811,9 +875,11 @@ Test(parser, func_definition) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, func_with_return_type) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "func test() int {}");
     parser_t* parser = new_parser(lexer);
 
@@ -835,9 +901,11 @@ Test(parser, func_with_return_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, func_with_return_pointer_type) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "func test() int* {}");
     parser_t* parser = new_parser(lexer);
 
@@ -860,9 +928,11 @@ Test(parser, func_with_return_pointer_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, func_with_return_type_with_parent) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "func test() (int) {}");
     parser_t* parser = new_parser(lexer);
 
@@ -884,9 +954,11 @@ Test(parser, func_with_return_type_with_parent) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, func_with_return_1_tuple_type) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "func test() (int,) {}");
     parser_t* parser = new_parser(lexer);
 
@@ -911,9 +983,11 @@ Test(parser, func_with_return_1_tuple_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, func_with_return_more_tuple_type) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "func test() (int, uint) {}");
     parser_t* parser = new_parser(lexer);
 
@@ -946,9 +1020,11 @@ Test(parser, func_with_return_more_tuple_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, func_with_1_argument) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "func test(int a) {}");
     parser_t* parser = new_parser(lexer);
 
@@ -973,9 +1049,11 @@ Test(parser, func_with_1_argument) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, func_with_more_arguments) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "func test(int a, int b) {}");
     parser_t* parser = new_parser(lexer);
 
@@ -1008,9 +1086,11 @@ Test(parser, func_with_more_arguments) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, module) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "module test");
     parser_t* parser = new_parser(lexer);
 
@@ -1025,9 +1105,11 @@ Test(parser, module) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, long_module) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "module test::test2");
     parser_t* parser = new_parser(lexer);
 
@@ -1043,9 +1125,11 @@ Test(parser, long_module) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, import_a_file) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "import \"./test2.cr\"");
     parser_t* parser = new_parser(lexer);
 
@@ -1061,9 +1145,11 @@ Test(parser, import_a_file) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, import_multiple_files) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer(
         "test.cr",
         "import \"./test2.cr\", \"./test3.cr\"");
@@ -1086,9 +1172,11 @@ Test(parser, import_multiple_files) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, import_with_rename) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "import \"./test2.cr\" as test");
     parser_t* parser = new_parser(lexer);
 
@@ -1104,9 +1192,11 @@ Test(parser, import_with_rename) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, import_specific_object) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "import \"./test2.cr\" { test }");
     parser_t* parser = new_parser(lexer);
 
@@ -1123,9 +1213,11 @@ Test(parser, import_specific_object) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, import_specific_many_objects) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer(
         "test.cr",
         "import \"./test2.cr\" { test, test2 }");
@@ -1146,9 +1238,11 @@ Test(parser, import_specific_many_objects) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, imports_with_rename_and_publish_get) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer(
         "test.cr",
         "import \"./test2.cr\" as test, \"./test3.cr\" { test4 }");
@@ -1172,9 +1266,11 @@ Test(parser, imports_with_rename_and_publish_get) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, for_each) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "for (let a in []) {}");
     parser_t* parser = new_parser(lexer);
 
@@ -1199,9 +1295,11 @@ Test(parser, for_each) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, for_empty_primary) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "for (;;) {}");
     parser_t* parser = new_parser(lexer);
 
@@ -1219,9 +1317,11 @@ Test(parser, for_empty_primary) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, for_primary) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "for (a; a; a) {}");
     parser_t* parser = new_parser(lexer);
 
@@ -1255,9 +1355,11 @@ Test(parser, for_primary) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, for_primary_with_declaration) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "for (int a = 0; a; a) {}");
     parser_t* parser = new_parser(lexer);
 
@@ -1317,9 +1419,11 @@ Test(parser, for_primary_with_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, return) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "return 1;");
     parser_t* parser = new_parser(lexer);
 
@@ -1333,9 +1437,11 @@ Test(parser, return) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, empty_return) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "return ;");
     parser_t* parser = new_parser(lexer);
 
@@ -1348,9 +1454,11 @@ Test(parser, empty_return) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, struct_declaration) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "struct Test;");
     parser_t* parser = new_parser(lexer);
 
@@ -1364,9 +1472,11 @@ Test(parser, struct_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, struct_declaration_empty) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "struct Test {}");
     parser_t* parser = new_parser(lexer);
 
@@ -1380,9 +1490,11 @@ Test(parser, struct_declaration_empty) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
 
 Test(parser, struct_declaration_not_empty) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "struct Test { int a; pub int b }");
     parser_t* parser = new_parser(lexer);
 
@@ -1414,4 +1526,5 @@ Test(parser, struct_declaration_not_empty) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    memory_container_drop(container);
 }
