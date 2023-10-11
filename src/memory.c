@@ -4,7 +4,10 @@
 
 memory_container_t* container = NULL;
 
-inline static void** memory_container_resize(memory_container_t* self, size_t len) {
+inline static void** memory_container_resize(
+    memory_container_t* self,
+    size_t len
+) {
     void** data = NULL;
 
     if (self->capacity >= len && self->data != NULL) {
@@ -26,7 +29,10 @@ inline static void** memory_container_resize(memory_container_t* self, size_t le
     return data;
 }
 
-inline static memory_container_t* memory_container_push(memory_container_t* self, void* element) {
+inline static memory_container_t* memory_container_push(
+    memory_container_t* self,
+    void* element
+) {
     if (memory_container_resize(self, self->len + 1)) {
         self->data[self->len - 1] = element;
         return self;
@@ -67,7 +73,8 @@ void memory_container_drop(memory_container_t* self) {
 
 void* mem_alloc(size_t size) {
     #ifdef DEBUG
-        if (container == NULL) panic("The memory container needs to be initialized.");
+        if (container == NULL)
+            panic("The memory container needs to be initialized.");
     #endif
 
     void* ptr = malloc(size);
@@ -85,7 +92,8 @@ void* mem_zeroed_alloc(size_t size) {
 
 void* mem_realloc(void* oldptr, size_t new_size) {
     #ifdef DEBUG
-        if (container == NULL) panic("The memory container needs to be initialized.");
+        if (container == NULL)
+            panic("The memory container needs to be initialized.");
     #endif
 
     void* ptr = realloc(oldptr, new_size);
@@ -98,7 +106,8 @@ void* mem_realloc(void* oldptr, size_t new_size) {
 
 void mem_free(void* ptr) {
     #ifdef DEBUG
-        if (container == NULL) panic("The memory container needs to be initialized.");
+        if (container == NULL)
+            panic("The memory container needs to be initialized.");
     #endif
 
     if (vector_remove(container, ptr))
