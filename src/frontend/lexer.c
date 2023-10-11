@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <ctype.h>
-#include <stdlib.h>
+#include <memory.h>
 #include <string.h>
 #include <frontend/lexer.h>
 #include <string_utils.h>
@@ -79,7 +79,7 @@ static const size_t keywords_tokens_count =
     sizeof(keywords_tokens) / sizeof(hardcoded_token);
 
 lexer_t* from_file_lexer(char* path) {
-    lexer_t* lexer = calloc(sizeof(lexer_t), 1);
+    lexer_t* lexer = mem_alloc(sizeof(lexer_t));
     string_t* src = NULL;
     size_t len = 0;
 
@@ -91,9 +91,6 @@ lexer_t* from_file_lexer(char* path) {
     len = ftell(file);
     fseek(file, 0, SEEK_SET);
     src = sized_string(len);
-
-    if (src == NULL)
-        return NULL;
 
     fread(src->data, len, 1, file);
     src->len = len;
@@ -112,11 +109,8 @@ lexer_t* from_file_lexer(char* path) {
 }
 
 lexer_t* new_lexer(char* path, char* src) {
-    lexer_t* lexer = calloc(sizeof(lexer_t), 1);
+    lexer_t* lexer = mem_alloc(sizeof(lexer_t));
     string_t* string_src = new_string(src);
-
-    if (string_src == NULL)
-        return NULL;
 
     lexer->context = new_context();
     lexer->filename = path;
@@ -313,5 +307,5 @@ void lexer_goto_location(lexer_t* self, location_t* location) {
 
 void lexer_drop(lexer_t* self) {
     string_drop(self->src);
-    free(self);
+    mem_free(self);
 }

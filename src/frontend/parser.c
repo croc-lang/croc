@@ -1,5 +1,5 @@
 #include <stdarg.h>
-#include <stdlib.h>
+#include <memory.h>
 #include <frontend/parser.h>
 #include <utils.h>
 
@@ -23,7 +23,7 @@ static expr_t* name(parser_t* self) { \
 }
 
 parser_t* new_parser(lexer_t* lexer) {
-    parser_t* parser = malloc(sizeof(parser_t));
+    parser_t* parser = mem_alloc(sizeof(parser_t));
     parser->context = lexer->context;
     parser->lexer = lexer;
     parser->current = lexer_next_token(lexer);
@@ -766,5 +766,5 @@ stmt_t* parser_next(parser_t* self) {
 void parser_drop(parser_t* self) {
     lexer_drop(self->lexer);
     token_drop(self->current);
-    free(self);
+    mem_free(self);
 }

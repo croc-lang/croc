@@ -1,11 +1,11 @@
-#include <stdlib.h>
+#include <memory.h>
 #include <frontend/type.h>
 
 generic_type_t* new_generic_type(
     /*string_t*/vector_t* path,
     /*type_t*/vector_t* generics
 ) {
-    generic_type_t* generic = malloc(sizeof(generic_type_t));
+    generic_type_t* generic = mem_alloc(sizeof(generic_type_t));
     generic->path = path;
     generic->generics = generics;
     return generic;
@@ -14,11 +14,11 @@ generic_type_t* new_generic_type(
 void generic_type_drop(generic_type_t* self) {
     vector_deeply_drop(self->path, (void*)string_drop);
     vector_deeply_drop(self->generics, (void*)type_drop);
-    free(self);
+    mem_free(self);
 }
 
 array_type_t* new_array_type(type_t* type, expr_t* size) {
-    array_type_t* array = malloc(sizeof(array_type_t));
+    array_type_t* array = mem_alloc(sizeof(array_type_t));
     array->type = type;
     array->size = size;
     return array;
@@ -27,11 +27,11 @@ array_type_t* new_array_type(type_t* type, expr_t* size) {
 void array_type_drop(array_type_t* self) {
     type_drop(self->type);
     expr_drop(self->size);
-    free(self);
+    mem_free(self);
 }
 
 type_t* new_type(type_kind_t kind, type_value_t value) {
-    type_t* type = malloc(sizeof(type_t));
+    type_t* type = mem_alloc(sizeof(type_t));
     type->kind = kind;
     type->value = value;
     return type;
@@ -46,5 +46,5 @@ void type_drop(type_t* self) {
         type_drop(self->value.type);
     else if (self->kind == TY_ARRAY)
         array_type_drop(self->value.array);
-    free(self);
+    mem_free(self);
 }

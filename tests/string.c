@@ -1,7 +1,9 @@
 #include <criterion/criterion.h>
 #include <string_utils.h>
+#include <memory.h>
 
 Test(string, alloc_new_string) {
+    memory_container_t* container = new_memory_container();
     string_t* str = new_string("Hello");
 
     cr_assert_str_eq(str->data, "Hello");
@@ -9,9 +11,11 @@ Test(string, alloc_new_string) {
     cr_assert_eq(str->capacity, 5);
 
     string_drop(str);
+    memory_container_drop(container);
 }
 
 Test(string, empty_sized_string) {
+    memory_container_t* container = new_memory_container();
     string_t* str = sized_string(10);
 
     cr_assert_str_eq(str->data, "");
@@ -19,9 +23,11 @@ Test(string, empty_sized_string) {
     cr_assert_eq(str->capacity, 10);
 
     string_drop(str);
+    memory_container_drop(container);
 }
 
 Test(string, formating_string) {
+    memory_container_t* container = new_memory_container();
     string_t* str = format_string("Hi %s!", "Hana");
 
     cr_assert_str_eq(str->data, "Hi Hana!");
@@ -29,17 +35,21 @@ Test(string, formating_string) {
     cr_assert_eq(str->capacity, 8);
 
     string_drop(str);
+    memory_container_drop(container);
 }
 
 Test(string, get_string_char_at_index) {
+    memory_container_t* container = new_memory_container();
     string_t* str = new_string("Hello");
 
     cr_assert_eq(string_get(str, 2), 'l');
 
     string_drop(str);
+    memory_container_drop(container);
 }
 
 Test(string, get_string_slice) {
+    memory_container_t* container = new_memory_container();
     string_t* str = new_string("Hello");
     string_t* slice = string_slice(str, 1, 4);
 
@@ -49,9 +59,11 @@ Test(string, get_string_slice) {
 
     string_drop(str);
     string_drop(slice);
+    memory_container_drop(container);
 }
 
 Test(string, push_a_char_ptr_into_a_string) {
+    memory_container_t* container = new_memory_container();
     string_t* str = new_string("Hello");
 
     cr_assert_str_eq(str->data, "Hello");
@@ -64,9 +76,11 @@ Test(string, push_a_char_ptr_into_a_string) {
     cr_assert_eq(str->capacity, 15);
 
     string_drop(str);
+    memory_container_drop(container);
 }
 
 Test(string, push_a_char_into_a_string) {
+    memory_container_t* container = new_memory_container();
     string_t* str = new_string("Hello");
 
     cr_assert_str_eq(str->data, "Hello");
@@ -78,9 +92,11 @@ Test(string, push_a_char_into_a_string) {
     cr_assert_eq(str->capacity, 10);
 
     string_drop(str);
+    memory_container_drop(container);
 }
 
 Test(string, push_a_string_into_another_string) {
+    memory_container_t* container = new_memory_container();
     string_t* str = new_string("Hello");
     string_t* str2 = new_string(" World");
 
@@ -99,9 +115,11 @@ Test(string, push_a_string_into_another_string) {
     cr_assert_eq(str2->len, 6);
 
     string_drop(str);
+    memory_container_drop(container);
 }
 
 Test(string, equality) {
+    memory_container_t* container = new_memory_container();
     string_t* str = new_string("Hello");
     string_t* str2 = new_string("Hello");
 
@@ -109,9 +127,11 @@ Test(string, equality) {
     cr_assert(string_eq_str(str, "Hello"));
 
     string_drop(str);
+    memory_container_drop(container);
 }
 
 Test(string, start_with) {
+    memory_container_t* container = new_memory_container();
     string_t* str = new_string("Hello World!");
 
     cr_assert(string_offset_start_with(str, "Hello", 0));
@@ -119,9 +139,11 @@ Test(string, start_with) {
     cr_assert_not(string_offset_start_with(str, "Hello", 6));
 
     string_drop(str);
+    memory_container_drop(container);
 }
 
 Test(string, clone) {
+    memory_container_t* container = new_memory_container();
     string_t* str = new_string("Hello");
     string_t* str2 = string_clone(str);;
 
@@ -130,4 +152,5 @@ Test(string, clone) {
 
     string_drop(str);
     string_drop(str2);
+    memory_container_drop(container);
 }

@@ -1,12 +1,9 @@
 #include <string.h>
-#include <stdlib.h>
+#include <memory.h>
 #include <vector.h>
 
 vector_t* new_vector() {
-    vector_t* vec = malloc(sizeof(vector_t));
-
-    if (vec == NULL)
-        return NULL;
+    vector_t* vec = mem_alloc(sizeof(vector_t));
 
     vec->capacity = 1;
     vec->len = 0;
@@ -35,8 +32,8 @@ inline static void** vector_resize(vector_t* self, size_t len) {
     }
 
     size_t capacity = self->capacity * 2;
-    if (self->data == NULL) data = calloc(capacity, sizeof(void*));
-    else data = realloc(self->data, sizeof(void*) * capacity);
+    if (self->data == NULL) data = mem_zeroed_alloc(sizeof(void*) * capacity);
+    else data = mem_realloc(self->data, sizeof(void*) * capacity);
 
     if (data) {
         self->data = data;
@@ -77,25 +74,22 @@ void* vector_replace(vector_t* self, void* new_element, void* old_element) {
     return old_element;
 }
 
-void* vector_remove(vector_t* self, void* element) {
+bool vector_remove(vector_t* self, void* element) {
     size_t offset = 0;
     for (int i = 0; i < self->len; i++) {
         if (self->data[i] == element) offset++;
         else if (offset) self->data[i - offset] = self->data[i];
     }
     self->len -= offset;
-    return element;
+    return offset != 0;
 }
 
 vector_t* vector_clone(vector_t* self) {
-    vector_t* vec = malloc(sizeof(vector_t));
+    vector_t* vec = mem_alloc(sizeof(vector_t));
     void** data = NULL;
 
-    if (vec == NULL)
-        return NULL;
-
     if (self->data) {
-        data = malloc(self->len * sizeof(void*));
+        data = mem_alloc(self->len * sizeof(void*));
         memcpy(data, self->data, self->len * sizeof(void*));
     }
 
@@ -115,6 +109,6 @@ void vector_deeply_drop(vector_t* self, void (*dropper)(void*)) {
 }
 
 void vector_drop(vector_t* self) {
-    free(self->data);
-    free(self);
+    mem_free(self->data);
+    mem_free(self);
 }

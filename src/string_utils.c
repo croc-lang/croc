@@ -1,5 +1,5 @@
 #include <stdarg.h>
-#include <stdlib.h>
+#include <memory.h>
 #include <string.h>
 #include <string_utils.h>
 
@@ -9,16 +9,8 @@
  */
 string_t* new_string(char* src) {
     size_t len = strlen(src);
-    char* data = NULL;
-    string_t* str = malloc(sizeof(string_t));
-
-    if (str == NULL)
-        return NULL;
-
-    data = calloc(len + 1, sizeof(char));
-
-    if (data == NULL)
-        return NULL;
+    string_t* str = mem_alloc(sizeof(string_t));
+    char* data = mem_zeroed_alloc(sizeof(char) * (len + 1));
 
     memcpy(data, src, len);
 
@@ -34,16 +26,8 @@ string_t* new_string(char* src) {
  * return NULL if error occured.
  */
 string_t* sized_string(size_t len) {
-    char* data = NULL;
-    string_t* str = malloc(sizeof(string_t));
-
-    if (str == NULL)
-        return NULL;
-
-    data = calloc(len + 1, sizeof(char));
-
-    if (data == NULL)
-        return NULL;
+    string_t* str = mem_alloc(sizeof(string_t));
+    char* data = mem_zeroed_alloc(sizeof(char) * (len + 1));
 
     str->capacity = len ? len : 1;
     str->data = data;
@@ -72,22 +56,18 @@ string_t* format_string(const char* src, ...) {
  * return the new memory adresse with the new size allocated or NULL if realloc
  * failed.
  */
-inline static char* string_resize(string_t* self, size_t len) {
+inline static void string_resize(string_t* self, size_t len) {
     if (self->capacity >= len) {
         self->len = len;
-        return self->data;
+        return;
     }
 
     size_t capacity = self->capacity * (len / self->capacity + 1);
-    char* data = realloc(self->data, sizeof(char) * capacity);
+    char* data = mem_realloc(self->data, sizeof(char) * capacity);
 
-    if (data) {
-        self->data = data;
-        self->capacity = capacity;
-        self->len = len;
-    }
-
-    return data;
+    self->data = data;
+    self->capacity = capacity;
+    self->len = len;
 }
 
 /*
@@ -127,11 +107,7 @@ string_t* string_slice(string_t* self, size_t start, size_t end) {
     char* str_sliced = strslice(self->data, start, end);
     string_t* str = new_string(str_sliced);
 
-    if (str == NULL)
-        return NULL;
-
-    free(str_sliced);
-
+    mem_free(str_sliced);
     return str;
 }
 
@@ -142,12 +118,9 @@ string_t* string_slice(string_t* self, size_t start, size_t end) {
 string_t* string_push(string_t* self, char* str) {
     size_t new_size = self->len + strlen(str);
 
-    if (string_resize(self, new_size)) {
-        strncat(self->data, str, new_size);
-        return self;
-    }
-
-    return NULL;
+    string_resize(self, new_size);
+    strncat(self->data, str, new_size);
+    return self;
 }
 
 /*
@@ -157,12 +130,10 @@ string_t* string_push(string_t* self, char* str) {
 string_t* string_push_char(string_t* self, char c) {
     size_t new_size = self->len + 1;
 
-    if (string_resize(self, new_size)) {
-        self->data[self->len - 1] = c;
-        return self;
-    }
-
-    return NULL;
+    string_resize(self, new_size);
+    self->data[self->len - 1] = c;
+    self->data[self->len] = '\0';
+    return self;
 }
 
 /*
@@ -172,25 +143,14 @@ string_t* string_push_char(string_t* self, char c) {
 string_t* string_push_str(string_t* self, string_t* str) {
     size_t new_size = self->len + str->len;
 
-    if (string_resize(self, new_size)) {
-        strncat(self->data, str->data, new_size);
-        return self;
-    }
-
-    return NULL;
+    string_resize(self, new_size);
+    strncat(self->data, str->data, new_size);
+    return self;
 }
 
 string_t* string_clone(string_t* self) {
-    string_t* str = malloc(sizeof(string_t));
-    char* data = NULL;
-
-    if (str == NULL)
-        return NULL;
-
-    data = malloc(self->len + 1);
-
-    if (data == NULL)
-        return NULL;
+    string_t* str = mem_alloc(sizeof(string_t));
+    char* data = mem_alloc(self->len + 1);
 
     memcpy(data, self->data, self->len + 1);
 
@@ -205,18 +165,15 @@ string_t* string_clone(string_t* self) {
  * free string_t object.
  */
 void string_drop(string_t* self) {
-    free(self->data);
-    free(self);
+    mem_free(self->data);
+    mem_free(self);
 }
 
 /*
  * return new string with slice desired or NULL if error occured.
  */
 char* strslice(const char *str, size_t start, size_t end) {
-    char* result = calloc(sizeof(char), end - start + 1);
-
-    if (result == NULL)
-        return NULL;
+    char* result = mem_zeroed_alloc(sizeof(char) * end - start + 1);
 
     strncpy(result, str + start, end - start);
 

@@ -1,8 +1,10 @@
 #include <criterion/criterion.h>
 #include <frontend/lexer.h>
 #include <frontend/token.h>
+#include <memory.h>
 
 Test(lexer, normal_string) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "\"I'm a string\"");
     token_t* expected_token = new_token(
         TK_STRING,
@@ -15,9 +17,11 @@ Test(lexer, normal_string) {
     token_drop(expected_token);
     token_drop(actual);
     lexer_drop(lexer);
+    memory_container_drop(container);
 }
 
 Test(lexer, string_with_escapement) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "\"I'm a \\\"string\\\"\"");
     token_t* expected_token = new_token(
         TK_STRING,
@@ -30,9 +34,11 @@ Test(lexer, string_with_escapement) {
     token_drop(expected_token);
     token_drop(actual);
     lexer_drop(lexer);
+    memory_container_drop(container);
 }
 
 Test(lexer, string_with_special_char) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "\"I'm a \\nstring\"");
     token_t* expected_token = new_token(
         TK_STRING,
@@ -45,9 +51,11 @@ Test(lexer, string_with_special_char) {
     token_drop(expected_token);
     token_drop(actual);
     lexer_drop(lexer);
+    memory_container_drop(container);
 }
 
 Test(lexer, int) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "10");
     token_t* expected_token = new_token(TK_INT, new_string("10"), NULL);
     token_t* actual = lexer_next_token(lexer);
@@ -57,9 +65,11 @@ Test(lexer, int) {
     token_drop(expected_token);
     token_drop(actual);
     lexer_drop(lexer);
+    memory_container_drop(container);
 }
 
 Test(lexer, float) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "10.4");
     token_t* expected_token = new_token(TK_FLOAT, new_string("10.4"), NULL);
     token_t* actual = lexer_next_token(lexer);
@@ -69,9 +79,11 @@ Test(lexer, float) {
     token_drop(expected_token);
     token_drop(actual);
     lexer_drop(lexer);
+    memory_container_drop(container);
 }
 
 Test(lexer, ident) {
+    memory_container_t* container = new_memory_container();
     lexer_t* lexer = new_lexer("test.cr", "identifier");
     token_t* expected_token = new_token(
         TK_IDENT,
@@ -84,9 +96,11 @@ Test(lexer, ident) {
     token_drop(expected_token);
     token_drop(actual);
     lexer_drop(lexer);
+    memory_container_drop(container);
 }
 
 Test(lexer, keywords) {
+    memory_container_t* container = new_memory_container();
     const int size = 3;
 
     lexer_t* lexer = new_lexer("test.cr", "let if func");
@@ -102,9 +116,11 @@ Test(lexer, keywords) {
     }
 
     lexer_drop(lexer);
+    memory_container_drop(container);
 }
 
 Test(lexer, operators) {
+    memory_container_t* container = new_memory_container();
     const int size = 31;
 
     lexer_t* lexer = new_lexer("test.cr", "( ) { } [ ] , ; :: -> "
@@ -171,9 +187,11 @@ Test(lexer, operators) {
     }
 
     lexer_drop(lexer);
+    memory_container_drop(container);
 }
 
 Test(lexer, token_proximity) {
+    memory_container_t* container = new_memory_container();
     const int size = 3;
 
     lexer_t* lexer = new_lexer("test.cr", "test()");
@@ -197,4 +215,5 @@ Test(lexer, token_proximity) {
     }
 
     lexer_drop(lexer);
+    memory_container_drop(container);
 }

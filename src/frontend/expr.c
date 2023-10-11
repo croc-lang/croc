@@ -1,19 +1,19 @@
-#include <stdlib.h>
+#include <memory.h>
 #include <frontend/expr.h>
 
 unary_expr_t* new_unary_expr(expr_t* value) {
-    unary_expr_t* unary = malloc(sizeof(unary_expr_t));
+    unary_expr_t* unary = mem_alloc(sizeof(unary_expr_t));
     unary->value = value;
     return unary;
 }
 
 void unary_expr_drop(unary_expr_t* self) {
     expr_drop(self->value);
-    free(self);
+    mem_free(self);
 }
 
 binary_expr_t* new_binary_expr(expr_t* left, expr_t* right) {
-    binary_expr_t* binary = malloc(sizeof(binary_expr_t));
+    binary_expr_t* binary = mem_alloc(sizeof(binary_expr_t));
     binary->left = left;
     binary->right = right;
     return binary;
@@ -22,11 +22,11 @@ binary_expr_t* new_binary_expr(expr_t* left, expr_t* right) {
 void binary_expr_drop(binary_expr_t* self) {
     expr_drop(self->left);
     expr_drop(self->right);
-    free(self);
+    mem_free(self);
 }
 
 arg_expr_t* new_arg_expr(type_t* type, string_t* name) {
-    arg_expr_t* arg = malloc(sizeof(arg_expr_t));
+    arg_expr_t* arg = mem_alloc(sizeof(arg_expr_t));
     arg->type = type;
     arg->name = name;
     return arg;
@@ -35,11 +35,11 @@ arg_expr_t* new_arg_expr(type_t* type, string_t* name) {
 void arg_expr_drop(arg_expr_t* self) {
     string_drop(self->name);
     type_drop(self->type);
-    free(self);
+    mem_free(self);
 }
 
 expr_t* new_expr(expr_kind_t kind, expr_value_t value) {
-    expr_t* expr = malloc(sizeof(expr_t));
+    expr_t* expr = mem_alloc(sizeof(expr_t));
     expr->kind = kind;
     expr->value = value;
     return expr;
@@ -54,7 +54,7 @@ void expr_drop(expr_t* self) {
         vector_deeply_drop(self->value.list, (void*)expr_drop);
     else if (self->kind >= EX_IDENT && self->kind <= EX_STRING_LITERAL)
         string_drop(self->value.value);
-    free(self);
+    mem_free(self);
 }
 
 expr_kind_t from_token(token_kind_t kind) {
