@@ -764,7 +764,6 @@ stmt_t* parser_next(parser_t* self) {
 }
 
 void parser_drop(parser_t* self) {
-    lexer_drop(self->lexer);
     token_drop(self->current);
     mem_free(self);
 }
