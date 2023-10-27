@@ -37,6 +37,9 @@ inline static token_t* parser_advence(parser_t* self) {
 }
 
 inline static bool parser_check(parser_t* self, token_kind_t kind) {
+    if (self->current->kind == TK_BIT_SR && kind == TK_CMP_GT)
+        return true;
+
     return self->current->kind == kind;
 }
 
@@ -68,6 +71,8 @@ inline static bool parser_skip_if_exist(parser_t* self, token_kind_t kind) {
 }
 
 inline static void parser_eat(parser_t* self, token_kind_t kind) {
+    token_t* last_token = NULL;
+
     if (!parser_check(self, kind)) {
         context_add_error(self->context,
             new_error(CTX_ERR_INVALID_TOKEN,
@@ -76,8 +81,22 @@ inline static void parser_eat(parser_t* self, token_kind_t kind) {
                     token_get_value(self->current, "")),
                 location_clone(self->current->location)));
     }
-    token_drop(self->current);
-    self->current = lexer_next_token(self->lexer);
+
+    if (self->current->kind == TK_BIT_SR && kind == TK_CMP_GT) {
+        last_token = self->current;
+        self->current = new_token(
+            TK_CMP_GT,
+            NULL,
+            new_location(
+                last_token->location->line,
+                last_token->location->col,
+                last_token->location->start + 1,
+                last_token->location->end - last_token->location->start - 1));
+        token_drop(last_token);
+    } else {
+        token_drop(self->current);
+        self->current = lexer_next_token(self->lexer);
+    }
 }
 
 static vector_t* parse_type_path(parser_t* self) {
@@ -633,6 +652,7 @@ type_t* parse_type(parser_t* self) {
     else {
         vector_t* path = parse_type_path(self);
         if (parser_skip_if_exist(self, TK_CMP_LT)) {
+            generics = new_vector();
             while (!parser_check(self, TK_CMP_GT)) {
                 vector_push(generics, parse_type(self));
                 if (!parser_skip_if_exist(self, TK_COMMA)) break;

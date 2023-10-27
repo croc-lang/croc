@@ -100,6 +100,8 @@ void* mem_realloc(void* oldptr, size_t new_size) {
     if (ptr == NULL)
         panic("Memory overload, unable to allocate more memory.");
 
+    // no after free because in replace we dont touch the content of oldptr
+    // but oldptr it-self
     if (ptr != oldptr) vector_replace(container, ptr, oldptr);
     return ptr;
 }

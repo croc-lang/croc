@@ -17,6 +17,7 @@ Test(parser, int) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -35,6 +36,7 @@ Test(parser, int_in_parent) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -57,6 +59,7 @@ Test(parser, tuple_with_1_element) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -87,6 +90,7 @@ Test(parser, tuple_with_more_elements) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -105,6 +109,7 @@ Test(parser, array_with_no_element) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -127,6 +132,7 @@ Test(parser, array_with_1_element) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -157,6 +163,7 @@ Test(parser, array_with_more_elements) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -175,6 +182,7 @@ Test(parser, string_auto_concat) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -211,6 +219,7 @@ Test(parser, unary) {
 
 
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -238,6 +247,7 @@ Test(parser, binary_add) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -276,6 +286,7 @@ Test(parser, orders_of_precedence) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -325,6 +336,7 @@ Test(parser, orders_of_precedence_with_assignment) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -352,6 +364,7 @@ Test(parser, extra_assign) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -370,6 +383,7 @@ Test(parser, useless_semi_colon) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -393,6 +407,7 @@ Test(parser, while_only) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -421,6 +436,7 @@ Test(parser, while_multi) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -446,6 +462,7 @@ Test(parser, if_only) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -475,6 +492,7 @@ Test(parser, if_with_else) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -515,6 +533,7 @@ Test(parser, if_with_else_if) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -540,6 +559,7 @@ Test(parser, var_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -570,6 +590,7 @@ Test(parser, var_with_type_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -599,6 +620,7 @@ Test(parser, var_with_type_declaration_without_initial_value) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -624,6 +646,7 @@ Test(parser, var_with_pointer_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -649,6 +672,7 @@ Test(parser, var_with_ref_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -674,6 +698,7 @@ Test(parser, var_with_slice_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -706,6 +731,7 @@ Test(parser, var_with_array_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -753,6 +779,82 @@ Test(parser, var_with_tuple_type_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
+    memory_container_drop(container);
+}
+
+Test(parser, var_with_generic_type_declaration) {
+    memory_container_t* container = new_memory_container();
+    lexer_t* lexer = new_lexer("test.cr", "vector<int> a;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 0);
+    cr_assert_eq(stmt->value.var->constant, false);
+
+    cr_assert_eq(stmt->value.var->type->kind, TY_GENERIC);
+    generic_type_t* generic = stmt->value.var->type->value.generic;
+    string_t* segment = vector_get(
+        generic->path,
+        0);
+    cr_assert_str_eq(segment->data, "vector");
+
+    type_t* type_generic = vector_get(
+        generic->generics,
+        0);
+    cr_assert_eq(type_generic->kind, TY_PATH);
+    string_t* name = vector_get(type_generic->value.path, 0);
+    cr_assert_str_eq(name->data, "int");
+
+    cr_assert_eq(parser->context->errors->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+    lexer_drop(lexer);
+    memory_container_drop(container);
+}
+
+Test(parser, var_with_generic_type_in_generic_type_declaration) {
+    memory_container_t* container = new_memory_container();
+    lexer_t* lexer = new_lexer("test.cr", "vector<vector<int>> a = 0;");
+    parser_t* parser = new_parser(lexer);
+
+    stmt_t* stmt = parser_next(parser);
+
+    cr_assert_eq(stmt->kind, STMT_VAR_DECLARATION);
+    cr_assert_eq(stmt->value.var->public, 0);
+    cr_assert_eq(stmt->value.var->constant, false);
+
+    cr_assert_eq(stmt->value.var->type->kind, TY_GENERIC);
+    generic_type_t* generic = stmt->value.var->type->value.generic;
+    string_t* segment = vector_get(
+        generic->path,
+        0);
+    cr_assert_str_eq(segment->data, "vector");
+
+    type_t* type_generic = vector_get(
+        generic->generics,
+        0);
+    generic_type_t* another_generic = type_generic->value.generic;
+    string_t* another_segment = vector_get(
+        another_generic->path,
+        0);
+    cr_assert_str_eq(another_segment->data, "vector");
+
+    type_t* another_type_generic = vector_get(
+        another_generic->generics,
+        0);
+    cr_assert_eq(another_type_generic->kind, TY_PATH);
+    string_t* name = vector_get(another_type_generic->value.path, 0);
+    cr_assert_str_eq(name->data, "int");
+
+    cr_assert_eq(parser->context->errors->len, 0);
+
+    stmt_drop(stmt);
+    parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -778,6 +880,7 @@ Test(parser, const_with_let_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -808,6 +911,7 @@ Test(parser, const_with_type_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -833,6 +937,7 @@ Test(parser, public_var_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -854,6 +959,7 @@ Test(parser, public_func_definition) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -875,6 +981,7 @@ Test(parser, func_definition) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -901,6 +1008,7 @@ Test(parser, func_with_return_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -928,6 +1036,7 @@ Test(parser, func_with_return_pointer_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -954,6 +1063,7 @@ Test(parser, func_with_return_type_with_parent) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -983,6 +1093,7 @@ Test(parser, func_with_return_1_tuple_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1020,6 +1131,7 @@ Test(parser, func_with_return_more_tuple_type) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1049,6 +1161,7 @@ Test(parser, func_with_1_argument) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1086,6 +1199,7 @@ Test(parser, func_with_more_arguments) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1105,6 +1219,7 @@ Test(parser, module) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1125,6 +1240,7 @@ Test(parser, long_module) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1145,6 +1261,7 @@ Test(parser, import_a_file) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1172,6 +1289,7 @@ Test(parser, import_multiple_files) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1192,6 +1310,7 @@ Test(parser, import_with_rename) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1213,6 +1332,7 @@ Test(parser, import_specific_object) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1238,6 +1358,7 @@ Test(parser, import_specific_many_objects) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1266,6 +1387,7 @@ Test(parser, imports_with_rename_and_publish_get) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1295,6 +1417,7 @@ Test(parser, for_each) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1317,6 +1440,7 @@ Test(parser, for_empty_primary) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1355,6 +1479,7 @@ Test(parser, for_primary) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1419,6 +1544,7 @@ Test(parser, for_primary_with_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1437,6 +1563,7 @@ Test(parser, return) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1454,6 +1581,7 @@ Test(parser, empty_return) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1472,6 +1600,7 @@ Test(parser, struct_declaration) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1490,6 +1619,7 @@ Test(parser, struct_declaration_empty) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
 
@@ -1526,5 +1656,6 @@ Test(parser, struct_declaration_not_empty) {
 
     stmt_drop(stmt);
     parser_drop(parser);
+    lexer_drop(lexer);
     memory_container_drop(container);
 }
