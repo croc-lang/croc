@@ -250,8 +250,23 @@ static token_t* lexing_string(lexer_t* lexer, size_t start) {
     return new_token(TK_STRING, str, new_location(line, col, start, lexer->i));
 }
 
+static void lexing_invalid_chars(lexer_t* lexer, size_t start) {
+    size_t line = lexer->line;
+    size_t col = lexer->col;
+
+    while (!isascii(string_get(lexer->src, lexer_forward(lexer))));
+    string_t* slice = string_slice(lexer->src, start,
+        lexer_backward(lexer));
+
+    context_add_error(lexer->context,
+        new_error(CTX_ERR_INVALID_SLICE,
+            format_string("`%s` was invalid", slice->data),
+            new_location(line, col, start, lexer->i)));
+    string_drop(slice);
+}
+
 token_t* lexer_next_token(lexer_t* self) {
-    size_t line, col, start;
+    size_t line = 0, col = 0, start = 0;
     size_t incrementor;
     char c;
     while ((c = string_get(self->src, lexer_forward(self))) > 0) {
@@ -260,20 +275,12 @@ token_t* lexer_next_token(lexer_t* self) {
         start = self->i - 1;
 
         if (!isascii(c)) {
-            while (!isascii(string_get(self->src, lexer_forward(self))));
-            string_t* slice = string_slice(self->src, start,
-                lexer_backward(self));
-
-            context_add_error(self->context,
-                new_error(CTX_ERR_INVALID_SLICE,
-                    format_string("`%s` was invalid", slice->data),
-                    new_location(line, col, start, self->i)));
-            string_drop(slice);
+            lexing_invalid_chars(self, start);
             continue;
         } else if (isblank(c) || isspace(c)) continue;
-        else if (isdigit(c)) return lexing_number(self, self->i - 1);
-        else if (isalpha(c)) return lexing_ident(self, self->i - 1);
-        else if (c == '"') return lexing_string(self, self->i - 1);
+        else if (isdigit(c)) return lexing_number(self, start);
+        else if (isalpha(c)) return lexing_ident(self, start);
+        else if (c == '"') return lexing_string(self, start);
         else if (string_offset_start_with(self->src, "//", start)) {
             do { c = string_get(self->src, lexer_forward(self)); }
             while (c != -1 && c != '\n');
